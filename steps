@@ -1,0 +1,18 @@
+[done] add git and upload to github
+
+CHESS ANNOTATOR
+[] Configure the UI
+    [] show game headers
+    [] show last move played
+    [] add next/prev move buttons
+    [] add tags (categorical droplist or checkbox) -- I prefer checkbox now
+[] Save sample data inot the database
+
+CHESS ANALYZER
+[] Create a summary of the tags
+    [] pychart of the mistake parental categories
+    [] evolution of the pychart as a line graph
+
+CHESS TRAINER
+[] show top costy mistakes and ask for the correct move.
+[] save the training session and the players performance in the database

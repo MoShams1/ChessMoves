@@ -1,72 +1,103 @@
 import io
-
 import chess
 import chess.pgn
 import chess.svg
 import cairosvg
 
-from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QGridLayout
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QGridLayout, \
+    QPushButton, QVBoxLayout, QHBoxLayout
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
+
 
 class Window(QWidget):
 
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("Chess Moves: Annotator")
+        self.setWindowTitle("ChessMoves: Annotator")
 
-        layout = QGridLayout(self)
-        self.setContentsMargins(20, 20, 20, 20)
-        self.setLayout(layout)
+        # --------------------------------------------------------------------
+        # attributes
 
-        self.player1_name = QLabel()
-        self.player2_name = QLabel()
+        self.myboard = game.board()
+        self.current_move = None
+        self.current_ply = 0
+        self.flip_flag = True
 
-        self.board_image = QLabel()
+        # --------------------------------------------------------------------
+        # widgets
+
+        self.player_name_top = QLabel()
+        self.player_name_bottom = QLabel()
+
+        self.image_board = QLabel()
         self.pixmap = QPixmap()
 
-        layout.addWidget(self.player2_name, 0, 0)
-        layout.addWidget(self.board_image, 1, 0)
-        layout.addWidget(self.player1_name, 2, 0)
+        self.btn_prev_move = QPushButton('< Last')
+        self.btn_next_move = QPushButton('Next >')
 
-        self.current_move = -1
-        self.myboard = game.board()
+        # --------------------------------------------------------------------
+        # layout
 
-        self.init_board()
+        master_layout = QHBoxLayout()
 
-        # # self.board = game.board()
-        # # self.current_move = -1
-        # # self.update_board()
-        #
-        # svg = chess.svg.board(board=self.board)
-        # png = cairosvg.svg2png(
-        #     bytestring=svg.encode()
-        # )
-        # pixmap = QPixmap()
-        # pixmap.loadFromData(png)
-        #
-        # layout.addWidget(pixmap, 1, 0)
+        left_col = QVBoxLayout()
 
+        left_col.addWidget(self.player_name_top)
+        left_col.addWidget(self.image_board)
+        left_col.addWidget(self.player_name_bottom)
 
-    def init_board(self):
+        btn_row = QHBoxLayout()
+        btn_row.addWidget(self.btn_prev_move)
+        btn_row.addWidget(self.btn_next_move)
 
-        svgimage = chess.svg.board(board=self.myboard)
-        pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
-        self.pixmap.loadFromData(pngimage)
+        left_col.addLayout(btn_row)
 
-        self.board_image.setPixmap(self.pixmap)
+        right_col = QVBoxLayout()
 
-        self.player1_name.setText(game.headers["White"])
-        self.player2_name.setText(game.headers["Black"])
+        master_layout.addLayout(left_col)
+        master_layout.addLayout(right_col)
 
+        # --------------------------------------------------------------------
+        # ???
+
+        self.btn_prev_move.clicked.connect(self.previous_move)
+        self.btn_next_move.clicked.connect(self.next_move)
+
+        self.setLayout(master_layout)
+
+        self.update_board()
 
     def update_board(self):
-        svgimage = chess.svg.board(board=self.myboard)
+        svgimage = chess.svg.board(board=self.myboard,
+                                   orientation=self.flip_flag,
+                                   lastmove=self.current_move)
+
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
-        self.board_image.setPixmap(self.pixmap)
+        self.image_board.setPixmap(self.pixmap)
 
+        if self.flip_flag:
+            self.player_name_top.setText(game.headers["Black"])
+            self.player_name_bottom.setText(game.headers["White"])
+
+        if not self.flip_flag:
+            self.player_name_top.setText(game.headers["White"])
+            self.player_name_bottom.setText(game.headers["Black"])
+
+    def next_move(self):
+        if self.current_ply < len(ply_list):
+            self.current_move = ply_list[self.current_ply]
+            self.myboard.push(self.current_move)
+            self.current_ply += 1
+            self.update_board()
+
+    def previous_move(self):
+        if self.current_ply > 0:
+            self.myboard.pop()
+            self.current_ply -= 1
+            self.update_board()
 
     def keyPressEvent(self, event):
 
@@ -74,18 +105,16 @@ class Window(QWidget):
             self.close()
 
         elif event.key() == Qt.Key.Key_Right:
-
-            if self.current_move < len(ply_list) - 1:
-                self.current_move += 1
-                self.myboard.push(ply_list[self.current_move])
-                self.update_board()
+            self.btn_next_move.animateClick()
+            # self.next_move()
 
         elif event.key() == Qt.Key.Key_Left:
+            self.btn_prev_move.animateClick()
+            # self.previous_move()
 
-            if self.current_move >= 0:
-                self.myboard.pop()
-                self.current_move -= 1
-                self.update_board()
+        elif event.key() == Qt.Key.Key_F:
+            self.flip_flag = not self.flip_flag
+            self.update_board()
 
 
 with open('game1.pgn') as f:
