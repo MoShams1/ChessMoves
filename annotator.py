@@ -16,9 +16,18 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
+        self.resize(1000, 500)
 
         # --------------------------------------------------------------------
         # attributes
+
+        self.myboard_temp = game.board()
+
+        self.ply_list = list(game.mainline_moves())
+        self.san_list = []
+        for move in self.ply_list:
+            self.san_list.append(self.myboard_temp.san(move))
+            self.myboard_temp.push(move)
 
         self.myboard = game.board()
         self.current_move = None
@@ -37,13 +46,14 @@ class Window(QWidget):
         self.btn_prev_move = QPushButton('< Last')
         self.btn_next_move = QPushButton('Next >')
 
+        self.move_notation = QLabel()
+
         # --------------------------------------------------------------------
         # layout
 
         master_layout = QHBoxLayout()
 
         left_col = QVBoxLayout()
-
         left_col.addWidget(self.player_name_top)
         left_col.addWidget(self.image_board)
         left_col.addWidget(self.player_name_bottom)
@@ -51,23 +61,24 @@ class Window(QWidget):
         btn_row = QHBoxLayout()
         btn_row.addWidget(self.btn_prev_move)
         btn_row.addWidget(self.btn_next_move)
+        btn_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         left_col.addLayout(btn_row)
 
         right_col = QVBoxLayout()
+        right_col.addWidget(self.move_notation)
 
-        master_layout.addLayout(left_col)
-        master_layout.addLayout(right_col)
-
-        # --------------------------------------------------------------------
-        # ???
-
-        self.btn_prev_move.clicked.connect(self.previous_move)
-        self.btn_next_move.clicked.connect(self.next_move)
-
+        master_layout.addLayout(left_col, 0)
+        master_layout.addLayout(right_col, 1)
         self.setLayout(master_layout)
 
         self.update_board()
+
+        # --------------------------------------------------------------------
+        # button connections
+
+        self.btn_prev_move.clicked.connect(self.previous_move)
+        self.btn_next_move.clicked.connect(self.next_move)
 
     def update_board(self):
         svgimage = chess.svg.board(board=self.myboard,
@@ -86,9 +97,20 @@ class Window(QWidget):
             self.player_name_top.setText(game.headers["White"])
             self.player_name_bottom.setText(game.headers["Black"])
 
+        if self.current_ply > 0:
+            if self.current_ply % 2 == 1:
+                prefix = f"{(self.current_ply + 1) // 2}. "
+            else:
+                prefix = f"{self.current_ply // 2}... "
+            self.move_notation.setText(
+                f"Played move: {prefix}{self.san_list[self.current_ply-1]}")
+        else:
+            self.move_notation.setText(
+                f"Played move: ")
+
     def next_move(self):
-        if self.current_ply < len(ply_list):
-            self.current_move = ply_list[self.current_ply]
+        if self.current_ply < len(self.ply_list):
+            self.current_move = self.ply_list[self.current_ply]
             self.myboard.push(self.current_move)
             self.current_ply += 1
             self.update_board()
@@ -106,11 +128,9 @@ class Window(QWidget):
 
         elif event.key() == Qt.Key.Key_Right:
             self.btn_next_move.animateClick()
-            # self.next_move()
 
         elif event.key() == Qt.Key.Key_Left:
             self.btn_prev_move.animateClick()
-            # self.previous_move()
 
         elif event.key() == Qt.Key.Key_F:
             self.flip_flag = not self.flip_flag
@@ -119,8 +139,6 @@ class Window(QWidget):
 
 with open('game1.pgn') as f:
     game = chess.pgn.read_game(f)
-
-ply_list = list(game.mainline_moves())
 
 app = QApplication([])
 
