@@ -1,13 +1,13 @@
-import io
 import chess
 import chess.pgn
 import chess.svg
 import cairosvg
 
 from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QGridLayout, \
-    QPushButton, QVBoxLayout, QHBoxLayout
+    QPushButton, QVBoxLayout, QHBoxLayout, QMessageBox
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
+from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 
 
 class Window(QWidget):
@@ -115,12 +115,6 @@ class Window(QWidget):
             self.current_ply += 1
             self.update_board()
 
-    def previous_move(self):
-        if self.current_ply > 0:
-            self.myboard.pop()
-            self.current_ply -= 1
-            self.update_board()
-
     def keyPressEvent(self, event):
 
         if event.key() == Qt.Key.Key_Escape:
@@ -136,9 +130,20 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
             self.update_board()
 
+    def previous_move(self):
+        if self.current_ply > 0:
+            self.myboard.pop()
+            self.current_ply -= 1
+            self.update_board()
+
+# --------------------------------------------------------------------
+# load pgn file
 
 with open('game1.pgn') as f:
     game = chess.pgn.read_game(f)
+
+# --------------------------------------------------------------------
+# run application
 
 app = QApplication([])
 
@@ -146,3 +151,28 @@ window = Window()
 window.show()
 
 app.exec()
+
+# --------------------------------------------------------------------
+# create/load database
+
+database = QSqlDatabase.addDatabase("QSQLITE")
+database.setDatabaseName("chess_moves.db")
+database.open()
+
+myquery = QSqlQuery()
+myquery.exec("""
+CREATE TABLE IF NOT EXISTS players(
+    player_id INTEGER PRIMARY KEY,
+    player_name TEXT not NULL,
+    player_rating INTEGER    
+)
+""")
+
+myquery = QSqlQuery()
+myquery.prepare("""
+INSERT INTO players (player_name, player_rating)
+VALUES(?, ?)
+""")
+myquery.addBindValue(game.headers['Black'])
+myquery.addBindValue(game.headers['BlackElo'])
+myquery.exec()

@@ -1,12 +1,21 @@
+--------------
+UI
+--------------
+
 [done] add git and upload to github
 
 CHESS ANNOTATOR
 [] Configure the UI
     [] show game headers
-    [] show last move played
-    [] add next/prev move buttons
+        [] show a link to the game url
+        [done] show player names correctly
+    [done] allow flip board
+    [done] show last move played
+    [done] add next/prev move buttons
     [] add tags (categorical droplist or checkbox) -- I prefer checkbox now
-[] Save sample data inot the database
+    [] add "best alternatives" as a text box to be filled by the operator
+[] Save data inot the database
+    [] save
 
 CHESS ANALYZER
 [] Create a summary of the tags
@@ -16,3 +25,62 @@ CHESS ANALYZER
 CHESS TRAINER
 [] show top costy mistakes and ask for the correct move.
 [] save the training session and the players performance in the database
+
+
+--------------
+DATABASE
+--------------
+
+CREATE TABLE players (
+    player_id INTEGER,
+    name TEXT NOT NULL,
+    PRIMARY KEY (player_id)
+);
+
+
+CREATE TABLE ratings (
+    rating_id INTEGER,
+    date TEXT,
+    player_id INTEGER,
+    rating_system TEXT,
+    rating INTEGER,
+    PRIMARY KEY (rating_id),
+    FOREIGN KEY (player_id) REFERENCES players(player_id)
+);
+
+CREATE TABLE games (
+    game_id INTEGER,
+    opening TEXT,
+    player_id INTEGER,
+    side TEXT,
+    date TEXT,
+    PRIMARY KEY (game_id),
+    FOREIGN KEY (player_id) REFERENCES players(player_id)
+);
+
+
+CREATE TABLE tags (
+    tag_id INTEGER,
+    tag TEXT,
+    PRIMARY KEY (tag_id)
+);
+
+CREATE TABLE moves (
+    move_id INTEGER,
+    move_number INTEGER,
+    fen_before TEXT,
+    played_move TEXT,
+    cp_loss REAL,
+    tag_id INTEGER,
+    comment TEXT,
+    game_id INTEGER,
+    PRIMARY KEY (move_id),
+    FOREIGN KEY (game_id) REFERENCES games(game_id)
+);
+
+CREATE TABLE moves_tags (
+	move_id INTEGER,
+	tag_id INTEGER,
+	FOREIGN KEY (move_id) REFERENCES moves(move_id),
+	FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
+);
