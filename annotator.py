@@ -21,7 +21,7 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # attributes
 
-        self.myboard = game.pgn.board()
+        self.board = game.parsed_game.board()
         self.move_pushable = None
         self.move_str = None
         self.hmove_nr = 0
@@ -44,11 +44,6 @@ class Window(QWidget):
         self.alternatives_label = QLabel("Best alternative(s): ")
         self.alternatives_box = QLineEdit()
         self.alternatives_box.setPlaceholderText("e.g. Nf3 g3")
-
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        print(game.date)
-        print(game.moves)
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # --------------------------------------------------------------------
         # layout
@@ -96,7 +91,7 @@ class Window(QWidget):
         self.btn_next_move.clicked.connect(self.next_move)
 
     def update_board(self):
-        svgimage = chess.svg.board(board=self.myboard,
+        svgimage = chess.svg.board(board=self.board,
                                    orientation=self.flip_flag,
                                    lastmove=self.move_pushable)
 
@@ -124,14 +119,14 @@ class Window(QWidget):
             self.move_label.setText(
                 f"Played move: ")
 
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        # print(self.myboard.fen())
-        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    @property
+    def fen(self):
+        return self.board.fen()
 
     def next_move(self):
         if self.hmove_nr < len(game.pushable_moves):
             self.move_pushable = game.pushable_moves[self.hmove_nr]
-            self.myboard.push(self.move_pushable)
+            self.board.push(self.move_pushable)
             self.hmove_nr += 1
             self.update_board()
 
@@ -152,7 +147,7 @@ class Window(QWidget):
 
     def previous_move(self):
         if self.hmove_nr > 0:
-            self.myboard.pop()
+            self.board.pop()
             self.hmove_nr -= 1
             self.update_board()
 
@@ -164,22 +159,22 @@ class Game:
         # ----------------------------------------------------------------
         # load pgn file
         with open('game1.pgn') as f:
-            self.pgn = chess.pgn.read_game(f)
+            self.parsed_game = chess.pgn.read_game(f)
 
         # ----------------------------------------------------------------
         # extract players' names
-        self.white = self.pgn.headers["White"]
-        self.black = self.pgn.headers["Black"]
+        self.white = self.parsed_game.headers["White"]
+        self.black = self.parsed_game.headers["Black"]
 
         # ----------------------------------------------------------------
         # extract date
-        self.date = self.pgn.headers["Date"]
+        self.date = self.parsed_game.headers["Date"]
 
         # ----------------------------------------------------------------
         # extract moves
-        board = self.pgn.board()
+        board = self.parsed_game.board()
 
-        self.pushable_moves = list(self.pgn.mainline_moves())
+        self.pushable_moves = list(self.parsed_game.mainline_moves())
         self.moves = []
         for pushable_move in self.pushable_moves:
             self.moves.append(board.san(pushable_move))
@@ -187,8 +182,8 @@ class Game:
 
         # ----------------------------------------------------------------
         # extract engine evaluation
-        pgn_str = str(self.pgn)
-        pgn_parts = pgn_str.split()
+        pgn = str(self.parsed_game)
+        pgn_parts = pgn.split()
         keyword = "[%eval"
         eval_array = []
         for i, part in enumerate(pgn_parts):
@@ -213,24 +208,24 @@ app.exec()
 # --------------------------------------------------------------------
 # create/load database
 
-database = QSqlDatabase.addDatabase("QSQLITE")
-database.setDatabaseName("chess_moves.db")
-database.open()
-
-myquery = QSqlQuery()
-myquery.exec("""
-CREATE TABLE IF NOT EXISTS players(
-    player_id INTEGER PRIMARY KEY,
-    player_name TEXT not NULL,
-    player_rating INTEGER    
-)
-""")
-
-myquery = QSqlQuery()
-myquery.prepare("""
-INSERT INTO players (player_name, player_rating)
-VALUES(?, ?)
-""")
-myquery.addBindValue(game.pgn.headers['Black'])
-myquery.addBindValue(game.pgn.headers['BlackElo'])
-myquery.exec()
+# database = QSqlDatabase.addDatabase("QSQLITE")
+# database.setDatabaseName("chess_moves.db")
+# database.open()
+#
+# myquery = QSqlQuery()
+# myquery.exec("""
+# CREATE TABLE IF NOT EXISTS players(
+#     player_id INTEGER PRIMARY KEY,
+#     player_name TEXT not NULL,
+#     player_rating INTEGER
+# )
+# """)
+#
+# myquery = QSqlQuery()
+# myquery.prepare("""
+# INSERT INTO players (player_name, player_rating)
+# VALUES(?, ?)
+# """)
+# myquery.addBindValue(game.parsed_game.headers['Black'])
+# myquery.addBindValue(game.parsed_game.headers['BlackElo'])
+# myquery.exec()
