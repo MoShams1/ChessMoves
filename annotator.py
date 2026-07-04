@@ -21,15 +21,7 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # attributes
 
-        self.myboard_temp = game.board()
-
-        self.ply_list = list(game.mainline_moves())
-        self.san_list = []
-        for move in self.ply_list:
-            self.san_list.append(self.myboard_temp.san(move))
-            self.myboard_temp.push(move)
-
-        self.myboard = game.board()
+        self.myboard = game.pgn.board()
         self.current_move = None
         self.current_ply = 0
         self.flip_flag = True
@@ -51,6 +43,11 @@ class Window(QWidget):
         self.alternatives_label = QLabel("Best alternative(s): ")
         self.alternatives_box = QLineEdit()
         self.alternatives_box.setPlaceholderText("e.g. Nf3 g3")
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        print(game.date)
+        print(game.moves)
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
         # --------------------------------------------------------------------
         # layout
@@ -107,12 +104,12 @@ class Window(QWidget):
         self.image_board.setPixmap(self.pixmap)
 
         if self.flip_flag:
-            self.player_name_top.setText(game.headers["Black"])
-            self.player_name_bottom.setText(game.headers["White"])
+            self.player_name_top.setText(game.black)
+            self.player_name_bottom.setText(game.white)
 
         if not self.flip_flag:
-            self.player_name_top.setText(game.headers["White"])
-            self.player_name_bottom.setText(game.headers["Black"])
+            self.player_name_top.setText(game.white)
+            self.player_name_bottom.setText(game.black)
 
         if self.current_ply > 0:
             if self.current_ply % 2 == 1:
@@ -126,7 +123,7 @@ class Window(QWidget):
                 f"Played move: ")
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        print(self.myboard.fen())
+        # print(self.myboard.fen())
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def next_move(self):
@@ -158,26 +155,54 @@ class Window(QWidget):
             self.update_board()
 
 
-# --------------------------------------------------------------------
-# load pgn file
+class Game:
 
-with open('game1.pgn') as f:
-    game = chess.pgn.read_game(f)
+    def __init__(self):
 
-pgn_string = str(game)
-pgn_parts = pgn_string.split()
-keyword = "[%eval"
-keyword_index = pgn_parts.index(keyword)
-eval_array = []
-for i, part in enumerate(pgn_parts):
-    if part == keyword:
-        eval_array.append(pgn_parts[i + 1][:-1])
+        # ----------------------------------------------------------------
+        # load pgn file
+        with open('game1.pgn') as f:
+            self.pgn = chess.pgn.read_game(f)
+
+        # ----------------------------------------------------------------
+        # extract players' names
+        self.white = self.pgn.headers["White"]
+        self.black = self.pgn.headers["Black"]
+
+        # ----------------------------------------------------------------
+        # extract date
+        self.date = self.pgn.headers["Date"]
+
+        # ----------------------------------------------------------------
+        # extract moves
+        temp_board = self.pgn.board()
+
+        ply_list = list(self.pgn.mainline_moves())
+        self.moves = []
+        for move in ply_list:
+            self.moves.append(temp_board.san(move))
+            temp_board.push(move)
+
+        # ----------------------------------------------------------------
+        # extract engine evaluation
+        pgn_string = str(self.pgn)
+        pgn_parts = pgn_string.split()
+        keyword = "[%eval"
+        eval_array = []
+        for i, part in enumerate(pgn_parts):
+            if part == keyword:
+                eval_array.append(pgn_parts[i + 1][:-1])
+
+
+# class Move:
+
 
 # --------------------------------------------------------------------
 # run application
 
 app = QApplication([])
 
+game = Game()
 window = Window()
 window.show()
 
@@ -204,6 +229,6 @@ myquery.prepare("""
 INSERT INTO players (player_name, player_rating)
 VALUES(?, ?)
 """)
-myquery.addBindValue(game.headers['Black'])
-myquery.addBindValue(game.headers['BlackElo'])
+myquery.addBindValue(game.pgn.headers['Black'])
+myquery.addBindValue(game.pgn.headers['BlackElo'])
 myquery.exec()
