@@ -1,4 +1,4 @@
 # Default ignored files
 /.idea
 /archive
-/chess_moves.db
+chess_moves.db
