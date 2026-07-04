@@ -1,0 +1,52 @@
+
+Opening code:
+
+Phase of the game:
+	- Opening
+	- Middlegame
+	- Endgame
+
+- Were you suspicious about your move?
+	- Yes
+	- No
+
+- Did you see any of the good alternatives?
+	- Yes
+		- Why did you reject them?
+			- Miscalculation
+			- Misevaluation
+			- Found them equally good
+	- No
+		- What stopped you from seeing it?
+			- busy with own plans
+			- busy with other threats
+			- pattern unfamiliarity
+			- time pressure
+			- exhastion
+			- move impulse
+
+- What was missed?
+
+	- threat
+	- opportunity
+
+	- material gain
+	- key square control
+	- check
+	- checkmate
+
+- How would the outcome be achieved?
+	- tactics
+		- pin
+		- skewer
+		- fork
+		- discovered attack
+		
+	- positional decision
+		- what piece was involved?						
+	- strategic decision
+
+- In how many half-moves would the outcome unfold?
+	- N half-moves
+
+Position FEN

@@ -3,8 +3,8 @@ import chess.pgn
 import chess.svg
 import cairosvg
 
-from PyQt6.QtWidgets import QApplication, QLabel, QWidget, QGridLayout, \
-    QPushButton, QVBoxLayout, QHBoxLayout, QMessageBox
+from PyQt6.QtWidgets import QApplication, QLabel, QWidget, \
+    QPushButton, QVBoxLayout, QHBoxLayout, QLineEdit, QFrame
 from PyQt6.QtGui import QPixmap
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
@@ -16,7 +16,7 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
-        self.resize(1000, 500)
+        self.setFixedSize(1000, 600)
 
         # --------------------------------------------------------------------
         # attributes
@@ -48,12 +48,17 @@ class Window(QWidget):
 
         self.move_notation = QLabel()
 
+        self.alternatives_label = QLabel("Best alternative(s): ")
+        self.alternatives_box = QLineEdit()
+        self.alternatives_box.setPlaceholderText("e.g. Nf3 g3")
+
         # --------------------------------------------------------------------
         # layout
 
         master_layout = QHBoxLayout()
 
         left_col = QVBoxLayout()
+        left_col.setAlignment(Qt.AlignmentFlag.AlignTop)
         left_col.addWidget(self.player_name_top)
         left_col.addWidget(self.image_board)
         left_col.addWidget(self.player_name_bottom)
@@ -66,11 +71,23 @@ class Window(QWidget):
         left_col.addLayout(btn_row)
 
         right_col = QVBoxLayout()
+        right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
+        right_col.addSpacing(20)
         right_col.addWidget(self.move_notation)
+
+        alternatives_row = QHBoxLayout()
+        alternatives_row.addWidget(self.alternatives_label)
+        alternatives_row.addWidget(self.alternatives_box)
+
+        right_col.addLayout(alternatives_row)
 
         master_layout.addLayout(left_col, 0)
         master_layout.addLayout(right_col, 1)
         self.setLayout(master_layout)
+
+        self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
+        self.setFocus()
+        self.alternatives_box.setFocusPolicy(Qt.FocusPolicy.ClickFocus)
 
         self.update_board()
 
@@ -103,10 +120,14 @@ class Window(QWidget):
             else:
                 prefix = f"{self.current_ply // 2}... "
             self.move_notation.setText(
-                f"Played move: {prefix}{self.san_list[self.current_ply-1]}")
+                f"Played move: {prefix}{self.san_list[self.current_ply - 1]}")
         else:
             self.move_notation.setText(
                 f"Played move: ")
+
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        print(self.myboard.fen())
+        # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def next_move(self):
         if self.current_ply < len(self.ply_list):
@@ -136,11 +157,21 @@ class Window(QWidget):
             self.current_ply -= 1
             self.update_board()
 
+
 # --------------------------------------------------------------------
 # load pgn file
 
 with open('game1.pgn') as f:
     game = chess.pgn.read_game(f)
+
+pgn_string = str(game)
+pgn_parts = pgn_string.split()
+keyword = "[%eval"
+keyword_index = pgn_parts.index(keyword)
+eval_array = []
+for i, part in enumerate(pgn_parts):
+    if part == keyword:
+        eval_array.append(pgn_parts[i + 1][:-1])
 
 # --------------------------------------------------------------------
 # run application
