@@ -22,8 +22,9 @@ class Window(QWidget):
         # attributes
 
         self.myboard = game.pgn.board()
-        self.current_move = None
-        self.current_ply = 0
+        self.move_pushable = None
+        self.move_str = None
+        self.hmove_nr = 0
         self.flip_flag = True
 
         # --------------------------------------------------------------------
@@ -38,7 +39,7 @@ class Window(QWidget):
         self.btn_prev_move = QPushButton('< Last')
         self.btn_next_move = QPushButton('Next >')
 
-        self.move_notation = QLabel()
+        self.move_label = QLabel()
 
         self.alternatives_label = QLabel("Best alternative(s): ")
         self.alternatives_box = QLineEdit()
@@ -70,7 +71,7 @@ class Window(QWidget):
         right_col = QVBoxLayout()
         right_col.setAlignment(Qt.AlignmentFlag.AlignTop)
         right_col.addSpacing(20)
-        right_col.addWidget(self.move_notation)
+        right_col.addWidget(self.move_label)
 
         alternatives_row = QHBoxLayout()
         alternatives_row.addWidget(self.alternatives_label)
@@ -97,7 +98,7 @@ class Window(QWidget):
     def update_board(self):
         svgimage = chess.svg.board(board=self.myboard,
                                    orientation=self.flip_flag,
-                                   lastmove=self.current_move)
+                                   lastmove=self.move_pushable)
 
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
@@ -111,15 +112,16 @@ class Window(QWidget):
             self.player_name_top.setText(game.white)
             self.player_name_bottom.setText(game.black)
 
-        if self.current_ply > 0:
-            if self.current_ply % 2 == 1:
-                prefix = f"{(self.current_ply + 1) // 2}. "
+        if self.hmove_nr > 0:
+            if self.hmove_nr % 2 == 1:
+                prefix = f"{(self.hmove_nr + 1) // 2}. "
             else:
-                prefix = f"{self.current_ply // 2}... "
-            self.move_notation.setText(
-                f"Played move: {prefix}{self.san_list[self.current_ply - 1]}")
+                prefix = f"{self.hmove_nr // 2}... "
+            self.move_label.setText(
+                f"Played move: {prefix}"
+                f"{game.moves[self.hmove_nr - 1]}")
         else:
-            self.move_notation.setText(
+            self.move_label.setText(
                 f"Played move: ")
 
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -127,10 +129,10 @@ class Window(QWidget):
         # !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     def next_move(self):
-        if self.current_ply < len(self.ply_list):
-            self.current_move = self.ply_list[self.current_ply]
-            self.myboard.push(self.current_move)
-            self.current_ply += 1
+        if self.hmove_nr < len(game.pushable_moves):
+            self.move_pushable = game.pushable_moves[self.hmove_nr]
+            self.myboard.push(self.move_pushable)
+            self.hmove_nr += 1
             self.update_board()
 
     def keyPressEvent(self, event):
@@ -149,9 +151,9 @@ class Window(QWidget):
             self.update_board()
 
     def previous_move(self):
-        if self.current_ply > 0:
+        if self.hmove_nr > 0:
             self.myboard.pop()
-            self.current_ply -= 1
+            self.hmove_nr -= 1
             self.update_board()
 
 
@@ -175,18 +177,18 @@ class Game:
 
         # ----------------------------------------------------------------
         # extract moves
-        temp_board = self.pgn.board()
+        board = self.pgn.board()
 
-        ply_list = list(self.pgn.mainline_moves())
+        self.pushable_moves = list(self.pgn.mainline_moves())
         self.moves = []
-        for move in ply_list:
-            self.moves.append(temp_board.san(move))
-            temp_board.push(move)
+        for pushable_move in self.pushable_moves:
+            self.moves.append(board.san(pushable_move))
+            board.push(pushable_move)
 
         # ----------------------------------------------------------------
         # extract engine evaluation
-        pgn_string = str(self.pgn)
-        pgn_parts = pgn_string.split()
+        pgn_str = str(self.pgn)
+        pgn_parts = pgn_str.split()
         keyword = "[%eval"
         eval_array = []
         for i, part in enumerate(pgn_parts):
