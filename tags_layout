@@ -1,55 +1,35 @@
 
-Game phase
+Game Phase
 -------------------------------
 () Opening
 () Middlegame
 () Endgame
 
-Correct Move
--------------------------------
-() Did not see
-() Saw but rejected
-() Saw but evaluated as equal
-
-Missed Action
--------------------------------
-[] missed own opportunity
-[] missed own defensive resource
-[] missed opponent's threat
-[] missed oppoenent's defensive resource
-
-Motif
+Tactical Motif
 -------------------------------
 [] pin
 [] fork
 [] skewer
-[] zugzwang
-[] pawn break
-[] deflection
-[] prophylaxis
-[] zwischenzug
-[] overloading
+[] double attack
 [] trapped piece
-[] poor exchange
 [] hanging material
-[] attraction/decoy
-[] undefended square
-[] discovered attack
-[] incorrect sacrifice
-[] clearance sacrifice
-
-Missed Outcome
--------------------------------
-[] passed pawn
-[] material gain
-[] positional gain
-[] initiative/tempo
 [] forced checkmate
+[] discovered attack
+[] removal of defender
+
+Positional Disadvantage
+-------------------------------
+[] allowed passed pawn
+[] unfavorable exchange
+[] weakend pawn structure
+[] compromised king safety
+[] loss of spatial control
+[] loss of tempo/initiative
 
 Diagnosis
 -------------------------------
 [] fatigue
 [] oversight
-[] time pressure
+[] time trouble
 [] misevaluation
 [] miscalculation
