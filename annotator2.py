@@ -17,7 +17,7 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
-        self.setFixedSize(1000, 700)
+        self.setFixedSize(700, 700)
 
         # --------------------------------------------------------------------
         # attributes
@@ -48,23 +48,45 @@ class Window(QWidget):
 
         lay_game_phase = self.create_radiobutton_list(
             "Game Phase",
-            ["Opening", "Middlegame", "Endgame"])
-
-        lay_mat_cost = self.create_checkbox_list(
-            "Instant Material Cost",
-            ["Checkmate", "Hanging Material"]
-        )
+            [
+                "Opening",
+                "Middlegame",
+                "Endgame"])
 
         lay_tactics = self.create_checkbox_list(
-            "Invited Tactics",
-            ["Pin", "Fork", "Skewer", "Double Attack", "Trapped Piece",
-             "Forced Checkmate", "Discovered Attack", "Removal of Defender"]
+            "Tactical Theme",
+            [
+                "Pin",
+                "Fork",
+                "Skewer",
+                "Double Attack",
+                "Trapped Piece",
+                "Hanging Material",
+                "Forced Checkmate",
+                "Discovered Attack",
+                "Removal of Defender"]
         )
 
         lay_positional = self.create_checkbox_list(
-            "Instant Positional Disadvantage",
-            ["King Safety", "Passed Pawn", "Poor Exchange",
-             "SpatialControl", "Tempo/Initiative"]
+            "Positional Disadvantage",
+            [
+                "Spatial Control Loss",
+                "Tempo/Initiative Loss",
+                "Allowed Passed Pawn",
+                "Unfavorable Exchange",
+                "Compromised King Safety",
+                "Pawn Structure Weakness"]
+        )
+
+        lay_diagnosis = self.create_checkbox_list(
+            "Diagnosis",
+            [
+                "Fatigue",
+                "Oversight",
+                "Time Trouble",
+                "Mis-Evaluation",
+                "Mis-Calculation",
+                "Missed Intention"]
         )
 
         # --------------------------------------------------------------------
@@ -77,9 +99,9 @@ class Window(QWidget):
         tags_layout = QVBoxLayout()
         tags_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         tags_layout.addLayout(lay_game_phase)
-        tags_layout.addLayout(lay_mat_cost)
         tags_layout.addLayout(lay_tactics)
         tags_layout.addLayout(lay_positional)
+        tags_layout.addLayout(lay_diagnosis)
 
         master_layout = QHBoxLayout()
         master_layout.addLayout(board_layout, 0)
