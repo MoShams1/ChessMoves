@@ -9,7 +9,13 @@ from PyQt6.QtWidgets import (
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
+from chess import WHITE
+import numpy as np
 
+#todo: delete spacing, add margin
+#todo: add + if evaluation is > 0 (it's a common chess thing)
+
+# noinspection PyUnresolvedReferences
 
 class Window(QWidget):
 
@@ -17,34 +23,36 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
-        self.setFixedSize(700, 700)
+        self.setFixedSize(900, 750)
 
         # --------------------------------------------------------------------
         # attributes
 
         self.board = game.parsed_game.board()
         self.move_pushable = None
-        self.move_str = None
-        self.hmove_nr = 0
         self.flip_flag = True
-        self.pixmap = QPixmap()
-        self.player_top = QLabel()
-        self.player_bottom = QLabel()
-        self.image_board = QLabel()
-
-        # --------------------------------------------------------------------
-        # widgets
+        self.hmove_nr = 0
 
         self.header_font = QFont()
         self.header_font.setBold(True)
 
-        self.move_label = QLabel()
-        self.move_label.setFont(self.header_font)
+        self.player_top = QLabel()
+        self.image_board = QLabel()
+        self.pixmap = QPixmap()
+        self.player_bottom = QLabel()
+        self.move_notation = QLabel()
+        self.move_cost = QLabel()
+        self.eval = QLabel()
+
+        # --------------------------------------------------------------------
+        # create widgets and layouts
 
         lay_board = self.create_board()
 
-        lay_navi_buttons, self.bt_dict = self.create_navi_buttons(
-            ["< Last", "Next >"])
+        lay_played_move = self.create_played_move_row()
+
+        lay_buttons, self.bt_dict = self.create_buttons(
+            ["URL", "PGN", "FEN"])
 
         lay_game_phase = self.create_radiobutton_list(
             "Game Phase",
@@ -53,16 +61,22 @@ class Window(QWidget):
                 "Middlegame",
                 "Endgame"])
 
+        lay_blunder_check = self.create_checkbox_list(
+            "Overlooked Response",
+            [
+                "Check",
+                "Capture",
+                "Threat"]
+        )
         lay_tactics = self.create_checkbox_list(
             "Tactical Theme",
             [
                 "Pin",
                 "Fork",
                 "Skewer",
+                "Forced Mate",
                 "Double Attack",
                 "Trapped Piece",
-                "Hanging Material",
-                "Forced Checkmate",
                 "Discovered Attack",
                 "Removal of Defender"]
         )
@@ -82,30 +96,41 @@ class Window(QWidget):
             "Diagnosis",
             [
                 "Fatigue",
-                "Oversight",
+                "Anxiety",
                 "Time Trouble",
                 "Mis-Evaluation",
                 "Mis-Calculation",
-                "Missed Intention"]
+                "Overconfidence"]
         )
 
         # --------------------------------------------------------------------
+        # organize layouts
 
         board_layout = QVBoxLayout()
         board_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
         board_layout.addLayout(lay_board)
-        board_layout.addLayout(lay_navi_buttons)
+        board_layout.addLayout(lay_played_move)
+        # board_layout.addSpacing(20)
+        board_layout.addLayout(lay_buttons)
 
-        tags_layout = QVBoxLayout()
-        tags_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        tags_layout.addLayout(lay_game_phase)
-        tags_layout.addLayout(lay_tactics)
-        tags_layout.addLayout(lay_positional)
-        tags_layout.addLayout(lay_diagnosis)
+        tags_layout = QHBoxLayout()
+        # tags_layout.setContentsMargins(20, 110, 20, 20)
+        tags_layout_l = QVBoxLayout()
+        tags_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
+        tags_layout_r = QVBoxLayout()
+        tags_layout_r.setAlignment(Qt.AlignmentFlag.AlignTop)
+        tags_layout_l.addLayout(lay_game_phase)
+        tags_layout_l.addLayout(lay_blunder_check)
+        tags_layout_l.addLayout(lay_diagnosis)
+        tags_layout_r.addLayout(lay_tactics)
+        tags_layout_r.addLayout(lay_positional)
+        tags_layout.addLayout(tags_layout_l)
+        # tags_layout.addSpacing(20)
+        tags_layout.addLayout(tags_layout_r)
 
         master_layout = QHBoxLayout()
         master_layout.addLayout(board_layout, 0)
-        master_layout.addSpacing(20)
+        # master_layout.addSpacing(20)
         master_layout.addLayout(tags_layout, 1)
         self.setLayout(master_layout)
 
@@ -116,13 +141,24 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # button connections
 
-        self.bt_dict["< Last"].clicked.connect(self.previous_move)
-        self.bt_dict["Next >"].clicked.connect(self.next_move)
+        self.bt_dict["URL"].clicked.connect(lambda: self.copy_text(game.url))
+        self.bt_dict["PGN"].clicked.connect(lambda: self.copy_text(game.pgn))
+        self.bt_dict["FEN"].clicked.connect(lambda: self.copy_text(
+            self.board.fen()))
 
     def update_board(self):
         svgimage = chess.svg.board(board=self.board,
                                    orientation=self.flip_flag,
-                                   lastmove=self.move_pushable)
+                                   lastmove=self.move_pushable,
+                                   colors={
+                                       "square light": "#B0AA98",
+                                       "square dark": "#827A68",
+                                       "square light lastmove": "#a1ad68",
+                                       "square dark lastmove": "#a1ad68"
+                                   },
+                                   coordinates=True,
+                                   size=400
+                                   )
 
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
@@ -137,16 +173,22 @@ class Window(QWidget):
             self.player_bottom.setText(game.black)
 
         if self.hmove_nr > 0:
+
             if self.hmove_nr % 2 == 1:
                 prefix = f"{(self.hmove_nr + 1) // 2}. "
+
             else:
                 prefix = f"{self.hmove_nr // 2}... "
-            self.move_label.setText(
-                f"Played Move: {prefix}"
-                f"{game.moves[self.hmove_nr - 1]}")
+
+            self.move_notation.setText(f"{prefix}"
+                                       f"{game.moves[self.hmove_nr - 1]}")
+            self.move_cost.setText(f"{game.cost_list[self.hmove_nr - 1]}")
+            self.eval.setText(f"{game.eval_list[self.hmove_nr - 1]}")
+
         else:
-            self.move_label.setText(
-                f"Played Move: ")
+            self.move_notation.setText("-")
+            self.move_cost.setText("-")
+            self.eval.setText("-")
 
     def next_move(self):
         if self.hmove_nr < len(game.pushable_moves):
@@ -161,10 +203,10 @@ class Window(QWidget):
             self.close()
 
         elif event.key() == Qt.Key.Key_Right:
-            self.bt_dict["Next >"].animateClick()
+            self.next_move()
 
         elif event.key() == Qt.Key.Key_Left:
-            self.bt_dict["< Last"].animateClick()
+            self.previous_move()
 
         elif event.key() == Qt.Key.Key_F:
             self.flip_flag = not self.flip_flag
@@ -187,7 +229,7 @@ class Window(QWidget):
             rb = QRadioButton(option)
             rb_dict[rb] = rb
             layout.addWidget(rb)
-        layout.addSpacing(10)
+        # layout.addSpacing(10)
         return layout
 
     def create_checkbox_list(self, title, options):
@@ -201,10 +243,10 @@ class Window(QWidget):
             cb = QCheckBox(option)
             cb_dict[cb] = cb
             layout.addWidget(cb)
-        layout.addSpacing(10)
+        # layout.addSpacing(10)
         return layout
 
-    def create_navi_buttons(self, buttons):
+    def create_buttons(self, buttons):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
         bt_dict = {}
@@ -212,16 +254,50 @@ class Window(QWidget):
             bt = QPushButton(button)
             bt_dict[button] = bt
             layout.addWidget(bt)
-        layout.addSpacing(10)
+        # layout.addSpacing(10)
         return layout, bt_dict
 
     def create_board(self):
         layout = QVBoxLayout()
+        # layout.addSpacing(20)
+        date = QLabel(game.date)
+        date.setFont(self.header_font)
+        date.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        layout.addWidget(date)
+        # layout.addSpacing(20)
         layout.addWidget(self.player_top)
         layout.addWidget(self.image_board)
         layout.addWidget(self.player_bottom)
-        layout.addSpacing(10)
+        # layout.addSpacing(20)
         return layout
+
+    def create_played_move_row(self):
+        layout_row = QHBoxLayout()
+        layout_move = QHBoxLayout()
+        layout_move.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout_cost = QHBoxLayout()
+        layout_cost.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout_eval = QHBoxLayout()
+        layout_eval.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        move_label = QLabel("Move:")
+        move_label.setFont(self.header_font)
+        cost_label = QLabel("Cost:")
+        cost_label.setFont(self.header_font)
+        eval_label = QLabel("Eval.:")
+        eval_label.setFont(self.header_font)
+        layout_move.addWidget(move_label)
+        layout_move.addWidget(self.move_notation)
+        layout_cost.addWidget(cost_label)
+        layout_cost.addWidget(self.move_cost)
+        layout_eval.addWidget(eval_label)
+        layout_eval.addWidget(self.eval)
+        layout_row.addLayout(layout_move)
+        layout_row.addLayout(layout_cost)
+        layout_row.addLayout(layout_eval)
+        return layout_row
+
+    def copy_text(self, text):
+        QApplication.clipboard().setText(text)
 
 
 class Game:
@@ -230,7 +306,7 @@ class Game:
 
         # ----------------------------------------------------------------
         # load pgn file
-        with open('game1.pgn') as f:
+        with open('game3.pgn') as f:
             self.parsed_game = chess.pgn.read_game(f)
 
         # ----------------------------------------------------------------
@@ -254,16 +330,60 @@ class Game:
 
         # ----------------------------------------------------------------
         # extract engine evaluation
-        pgn = str(self.parsed_game)
-        pgn_parts = pgn.split()
+        self.pgn = str(self.parsed_game)
+        pgn_parts = self.pgn.split()
         keyword = "[%eval"
-        self.eval_array = []
+        self.eval_list = []
         for i, part in enumerate(pgn_parts):
             if part == keyword:
-                self.eval_array.append(pgn_parts[i + 1][:-1])
+                try:
+                    self.eval_list.append(float(pgn_parts[i + 1][:-1]))
+                except ValueError:
+                    self.eval_list.append(pgn_parts[i + 1][:-1])
+        if len(self.eval_list) == len(self.moves) - 1:
+            self.eval_list.append(self.parsed_game.headers["Result"])
 
+        # ----------------------------------------------------------------
+        # calculate move cost
 
-# class Move:
+        self.cost_list = []
+
+        for ieval, evaluation in enumerate(self.eval_list):
+
+            if ieval == 0:
+                self.cost_list.append(self.eval_list[ieval])
+
+            else:
+                last_eval = self.eval_list[ieval - 1]
+                curr_eval = self.eval_list[ieval]
+
+                if isinstance(last_eval, float) and \
+                        isinstance(curr_eval, str):
+                    self.cost_list.append("Unavoidable Checkmate")
+
+                if isinstance(last_eval, str) and \
+                        isinstance(curr_eval, str):
+                    self.cost_list.append(0)
+
+                if isinstance(last_eval, str) and \
+                        isinstance(curr_eval, float):
+                    self.cost_list.append("Missed Checkmate")
+
+                if isinstance(last_eval, float) and \
+                        isinstance(curr_eval, float):
+                    self.cost_list.append(round(curr_eval - last_eval, 2))
+
+            if isinstance(self.cost_list[-1], float):
+
+                if ieval % 2 == 0:
+                    self.cost_list[-1] = -self.cost_list[-1]
+
+                if not (self.cost_list[-1] > 0):
+                    self.cost_list[-1] = 0
+
+        # ----------------------------------------------------------------
+        # extract url
+        self.url = self.parsed_game.headers["Site"]
 
 
 # --------------------------------------------------------------------
@@ -274,30 +394,4 @@ app = QApplication([])
 game = Game()
 window = Window()
 window.show()
-
 app.exec()
-
-# --------------------------------------------------------------------
-# create/load database
-
-# database = QSqlDatabase.addDatabase("QSQLITE")
-# database.setDatabaseName("chess_moves.db")
-# database.open()
-#
-# myquery = QSqlQuery()
-# myquery.exec("""
-# CREATE TABLE IF NOT EXISTS players(
-#     player_id INTEGER PRIMARY KEY,
-#     player_name TEXT not NULL,
-#     player_rating INTEGER
-# )
-# """)
-#
-# myquery = QSqlQuery()
-# myquery.prepare("""
-# INSERT INTO players (player_name, player_rating)
-# VALUES(?, ?)
-# """)
-# myquery.addBindValue(game.parsed_game.headers['Black'])
-# myquery.addBindValue(game.parsed_game.headers['BlackElo'])
-# myquery.exec()

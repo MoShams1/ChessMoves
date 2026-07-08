@@ -1,0 +1,21 @@
+[Event "Harald Lieb Gedenkturnier 10"]
+[Date "2026.07.02"]
+[Round "6"]
+[White "Mohammad Shams"]
+[Black "Batyr Malik"]
+[Result "1/2-1/2"]
+[WhiteElo "1336"]
+[BlackElo "1654"]
+[Variant "Standard"]
+[ECO "A20"]
+[Opening "English Opening: King's English Variation"]
+[StudyName "Harald Lieb Gedenkturnier 10"]
+[ChapterName "Shams - Malik"]
+[ChapterURL "https://lichess.org/study/eP6xGQfo/iKEtkpc0"]
+[Annotator "https://lichess.org/@/GrayArmy"]
+[UTCDate "2026.07.02"]
+[UTCTime "22:34:04"]
+
+1. c4 { [%eval 0.11] } 1... e5 { [%eval 0.14] } 2. g3 { [%eval 0.14] } 2... Nf6 { [%eval 0.18] } 3. Bg2 { [%eval 0.12] } 3... c6 { [%eval 0.13] } 4. Nc3 { [%eval 0.0] } 4... d5 { [%eval 0.0] } 5. cxd5 { [%eval -0.28] } 5... Nxd5?! { [%eval 0.4] } { Inaccuracy. cxd5 was best. } (5... cxd5 6. d4 exd4 7. Qxd4 Nc6 8. Qa4 d4 9. Ne4 Be7 10. Nxf6+) 6. Nf3 { [%eval 0.44] } 6... Bd6 { [%eval 0.39] } 7. d3 { [%eval 0.18] } 7... O-O { [%eval 0.21] } 8. O-O { [%eval 0.38] } 8... Nf6 { [%eval 0.47] } 9. Bg5 { [%eval 0.25] } 9... h6 { [%eval 0.25] } 10. Bxf6 { [%eval 0.19] } 10... Qxf6 { [%eval 0.22] } 11. Ne4 { [%eval 0.22] } 11... Qe7 { [%eval 0.3] } 12. Nxd6 { [%eval 0.25] } 12... Qxd6 { [%eval 0.24] } 13. Rc1 { [%eval 0.18] } 13... Be6 { [%eval 0.13] } 14. a3 { [%eval 0.0] } 14... Nd7 { [%eval 0.02] } 15. b4 { [%eval -0.2] } 15... Nf6 { [%eval 0.11] } 16. Nd2 { [%eval 0.05] } 16... Bd5 { [%eval 0.06] } 17. Nc4 { [%eval -0.19] } 17... Bxc4 { [%eval 0.29] } 18. Rxc4 { [%eval 0.45] } 18... Rac8 { [%eval 0.64] } { 1/2-1/2  } 1/2-1/2
+
+
