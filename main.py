@@ -7,13 +7,14 @@ import cairosvg
 
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QRadioButton, QCheckBox, QTabWidget)
+    QRadioButton, QCheckBox, QTabWidget, QSizePolicy)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 from chess import WHITE
 import numpy as np
 import requests
+
 
 # noinspection PyUnresolvedReferences
 
@@ -22,9 +23,13 @@ class Window(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("ChessMoves: Annotator")
+        self.setWindowTitle("ChessMoves")
         self.setFixedSize(950, 670)
-        self.setStyleSheet("""QWidget {color: #D3D3D3;}""")
+        self.setStyleSheet("""
+        QWidget {
+        color: #D3D3D3;
+        }
+        """)
 
         # --------------------------------------------------------------------
         # attributes
@@ -37,7 +42,7 @@ class Window(QWidget):
         self.header_font = QFont()
         self.header_font.setBold(True)
 
-        tabs = QTabWidget()
+        self.tabs = QTabWidget()
         tab_tag = QWidget()
         tab_report = QWidget()
         tab_train = QWidget()
@@ -117,7 +122,8 @@ class Window(QWidget):
         # organize layouts
 
         self.setLayout(QVBoxLayout())
-        self.layout().addWidget(tabs)
+        self.layout().setContentsMargins(0, 0, 0, 0)
+        self.layout().addWidget(self.tabs)
 
         board_layout = QVBoxLayout()
         board_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -148,9 +154,21 @@ class Window(QWidget):
 
         tab_tag.setLayout(master_layout)
 
-        tabs.addTab(tab_tag,    "   Tag  ")
-        tabs.addTab(tab_report, " Report ")
-        tabs.addTab(tab_train,  "  Train  ")
+        self.tabs.addTab(tab_tag, "Tag")
+        self.tabs.addTab(tab_report, "Reportttt")
+        self.tabs.addTab(tab_train, "Train")
+
+        self.tabs.setSizePolicy(
+            QSizePolicy.Policy.Expanding,
+            QSizePolicy.Policy.Expanding
+        )
+
+        self.tabs.tabBar().setExpanding(False)
+        self.tabs.setStyleSheet("""
+        QTabBar::tab {
+            width: 120px;
+        }
+        """)
 
         # --------------------------------------------------------------------
 
