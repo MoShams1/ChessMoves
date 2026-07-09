@@ -7,17 +7,13 @@ import cairosvg
 
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QLineEdit, QRadioButton, QButtonGroup, QCheckBox, QGroupBox)
+    QRadioButton, QCheckBox, QTabWidget)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 from chess import WHITE
 import numpy as np
 import requests
-
-
-#todo: put me (player) on the bottom (GrayArmy, Mohammad Shams, Mohammad
-# Shams-Amar)
 
 # noinspection PyUnresolvedReferences
 
@@ -27,7 +23,8 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
-        self.setFixedSize(900, 600)
+        self.setFixedSize(950, 670)
+        self.setStyleSheet("""QWidget {color: #D3D3D3;}""")
 
         # --------------------------------------------------------------------
         # attributes
@@ -39,6 +36,11 @@ class Window(QWidget):
 
         self.header_font = QFont()
         self.header_font.setBold(True)
+
+        tabs = QTabWidget()
+        tab_tag = QWidget()
+        tab_report = QWidget()
+        tab_train = QWidget()
 
         self.load_bt = QPushButton()
         self.player_top = QLabel()
@@ -67,7 +69,7 @@ class Window(QWidget):
                 "Endgame"])
 
         lay_blunder_check = self.create_checkbox_list(
-            "Overlooked Response",
+            "Missed Response",
             [
                 "Check",
                 "Capture",
@@ -114,16 +116,20 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # organize layouts
 
+        self.setLayout(QVBoxLayout())
+        self.layout().addWidget(tabs)
+
         board_layout = QVBoxLayout()
         board_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        board_layout.setContentsMargins(20, 10, 20, 10)
-        board_layout.addLayout(lay_buttons)
+        board_layout.setContentsMargins(20, 10, 20, 0)
         board_layout.addLayout(lay_board)
+        board_layout.addSpacing(10)
+        board_layout.addLayout(lay_buttons)
         board_layout.addSpacing(10)
         board_layout.addLayout(lay_played_move)
 
         tags_layout = QHBoxLayout()
-        tags_layout.setContentsMargins(20, 80, 20, 10)
+        tags_layout.setContentsMargins(20, 35, 20, 10)
         tags_layout_l = QVBoxLayout()
         tags_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
         tags_layout_r = QVBoxLayout()
@@ -139,15 +145,16 @@ class Window(QWidget):
         master_layout = QHBoxLayout()
         master_layout.addLayout(board_layout, 0)
         master_layout.addLayout(tags_layout, 1)
-        self.setLayout(master_layout)
+
+        tab_tag.setLayout(master_layout)
+
+        tabs.addTab(tab_tag,    "   Tag  ")
+        tabs.addTab(tab_report, " Report ")
+        tabs.addTab(tab_train,  "  Train  ")
 
         # --------------------------------------------------------------------
 
-        if self.game is None:
-            self.initialize_board()
-        else:
-            self.board = self.game.parsed_game.board()
-            self.update_board()
+        self.initialize_board()
 
         # --------------------------------------------------------------------
         # button connections
@@ -203,13 +210,7 @@ class Window(QWidget):
         self.pixmap.loadFromData(pngimage)
         self.image_board.setPixmap(self.pixmap)
 
-        if self.flip_flag:
-            self.player_top.setText(self.game.black)
-            self.player_bottom.setText(self.game.white)
-
-        if not self.flip_flag:
-            self.player_top.setText(self.game.white)
-            self.player_bottom.setText(self.game.black)
+        self.set_board_orientation()
 
         if self.hmove_nr > 0:
 
@@ -232,6 +233,15 @@ class Window(QWidget):
             self.move_notation.setText("-")
             self.move_cost.setText("-")
             self.eval.setText("-")
+
+    def set_board_orientation(self):
+        if self.flip_flag:
+            self.player_top.setText(self.game.black)
+            self.player_bottom.setText(self.game.white)
+
+        if not self.flip_flag:
+            self.player_top.setText(self.game.white)
+            self.player_bottom.setText(self.game.black)
 
     def next_move(self):
         if self.game is not None and (self.hmove_nr < len(
@@ -307,6 +317,10 @@ class Window(QWidget):
         for button in buttons:
             bt = QPushButton(button)
             bt_dict[button] = bt
+            if button == "Load Game":
+                bt.setFixedWidth(100)
+            else:
+                bt.setFixedWidth(50)
             layout.addWidget(bt)
         return layout, bt_dict
 
@@ -358,7 +372,13 @@ class Window(QWidget):
             game_id = game_url.split(".org/")[1].split("/")[0]
             req_game = requests.get(
                 f"https://lichess.org/game/export/{game_id}")
+
         self.game = Game(req_game)
+
+        if self.game.black in \
+                ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
+            self.flip_flag = not self.flip_flag
+
         self.update_board()
 
 
