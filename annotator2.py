@@ -16,7 +16,8 @@ import numpy as np
 import requests
 
 
-# todo: add proper margins
+#todo: put me (player) on the bottom (GrayArmy, Mohammad Shams, Mohammad
+# Shams-Amar)
 
 # noinspection PyUnresolvedReferences
 
@@ -26,7 +27,7 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves: Annotator")
-        self.setFixedSize(900, 750)
+        self.setFixedSize(900, 600)
 
         # --------------------------------------------------------------------
         # attributes
@@ -39,8 +40,7 @@ class Window(QWidget):
         self.header_font = QFont()
         self.header_font.setBold(True)
 
-        self.load_bt = QPushButton("Load Game")
-        self.date = QLabel()
+        self.load_bt = QPushButton()
         self.player_top = QLabel()
         self.image_board = QLabel()
         self.pixmap = QPixmap()
@@ -57,7 +57,7 @@ class Window(QWidget):
         lay_played_move = self.create_played_move_row()
 
         lay_buttons, self.bt_dict = self.create_buttons(
-            ["URL", "PGN", "FEN"])
+            ["Load Game", "URL", "PGN", "FEN"])
 
         lay_game_phase = self.create_radiobutton_list(
             "Game Phase",
@@ -116,12 +116,14 @@ class Window(QWidget):
 
         board_layout = QVBoxLayout()
         board_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        board_layout.addLayout(lay_board)
-        board_layout.addLayout(lay_played_move)
+        board_layout.setContentsMargins(20, 10, 20, 10)
         board_layout.addLayout(lay_buttons)
+        board_layout.addLayout(lay_board)
+        board_layout.addSpacing(10)
+        board_layout.addLayout(lay_played_move)
 
         tags_layout = QHBoxLayout()
-        # tags_layout.setContentsMargins(20, 110, 20, 20)
+        tags_layout.setContentsMargins(20, 80, 20, 10)
         tags_layout_l = QVBoxLayout()
         tags_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
         tags_layout_r = QVBoxLayout()
@@ -150,14 +152,14 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # button connections
 
-        self.load_bt.clicked.connect(self.load_game)
+        self.bt_dict["Load Game"].clicked.connect(self.load_game)
 
         self.bt_dict["URL"].clicked.connect(
             lambda: self.copy_text(self.game.url))
         self.bt_dict["PGN"].clicked.connect(
             lambda: self.copy_text(self.game.pgn))
         self.bt_dict["FEN"].clicked.connect(
-            lambda: self.copy_text(self.board.fen()))
+            lambda: self.copy_text(self.game.board.fen()))
 
     def initialize_board(self):
         svgimage = chess.svg.board(board=chess.Board(),
@@ -177,15 +179,13 @@ class Window(QWidget):
         self.pixmap.loadFromData(pngimage)
         self.image_board.setPixmap(self.pixmap)
 
-        self.date.setText("")
-        self.player_top.setText("")
-        self.player_bottom.setText("")
-        self.move_notation.setText("")
-        self.move_cost.setText("")
-        self.eval.setText("")
+        self.player_top.setText("?")
+        self.player_bottom.setText("?")
+        self.move_notation.setText("?")
+        self.move_cost.setText("?")
+        self.eval.setText("?")
 
     def update_board(self):
-        self.date.setText(self.game.date)
         svgimage = chess.svg.board(board=self.game.board,
                                    orientation=self.flip_flag,
                                    lastmove=self.move_pushable,
@@ -262,6 +262,18 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
             self.update_board()
 
+        elif event.key() == Qt.Key.Key_L:
+            self.load_game()
+
+        elif event.key() == Qt.Key.Key_U:
+            self.copy_text(self.game.url)
+
+        elif event.key() == Qt.Key.Key_P:
+            self.copy_text(self.game.pgn)
+
+        elif event.key() == Qt.Key.Key_N:
+            self.copy_text(self.game.board.fen())
+
     def create_radiobutton_list(self, title, options):
         layout = QVBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -300,11 +312,6 @@ class Window(QWidget):
 
     def create_board(self):
         layout = QVBoxLayout()
-        layout.addWidget(self.load_bt)
-        layout.addWidget(self.date)
-        self.date.setFont(self.header_font)
-        self.date.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        layout.addWidget(self.date)
         layout.addWidget(self.player_top)
         layout.addWidget(self.image_board)
         layout.addWidget(self.player_bottom)
@@ -312,6 +319,7 @@ class Window(QWidget):
 
     def create_played_move_row(self):
         layout_row = QHBoxLayout()
+        layout_row.addSpacing(40)
         layout_move = QHBoxLayout()
         layout_move.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout_cost = QHBoxLayout()
@@ -350,9 +358,8 @@ class Window(QWidget):
             game_id = game_url.split(".org/")[1].split("/")[0]
             req_game = requests.get(
                 f"https://lichess.org/game/export/{game_id}")
-        print(f"game url: {game_url}")
-        print(f"game id: {game_id}")
         self.game = Game(req_game)
+        self.update_board()
 
 
 class Game:
