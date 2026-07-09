@@ -7,7 +7,7 @@ import cairosvg
 
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QRadioButton, QCheckBox, QTabWidget, QSizePolicy)
+    QRadioButton, QCheckBox, QTabWidget, QSizePolicy, QTabBar)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
@@ -17,6 +17,15 @@ import requests
 
 
 # noinspection PyUnresolvedReferences
+
+
+class FixedWidthTabBar(QTabBar):
+
+    def tabSizeHint(self, index):
+        size = super().tabSizeHint(index)
+        size.setWidth(100)
+        return size
+
 
 class Window(QWidget):
 
@@ -43,6 +52,9 @@ class Window(QWidget):
         self.header_font.setBold(True)
 
         self.tabs = QTabWidget()
+        self.tabs.setTabBar(FixedWidthTabBar())
+        self.tabs.tabBar().setDrawBase(False)
+
         tab_tag = QWidget()
         tab_report = QWidget()
         tab_train = QWidget()
@@ -155,20 +167,8 @@ class Window(QWidget):
         tab_tag.setLayout(master_layout)
 
         self.tabs.addTab(tab_tag, "Tag")
-        self.tabs.addTab(tab_report, "Reportttt")
+        self.tabs.addTab(tab_report, "Report")
         self.tabs.addTab(tab_train, "Train")
-
-        self.tabs.setSizePolicy(
-            QSizePolicy.Policy.Expanding,
-            QSizePolicy.Policy.Expanding
-        )
-
-        self.tabs.tabBar().setExpanding(False)
-        self.tabs.setStyleSheet("""
-        QTabBar::tab {
-            width: 120px;
-        }
-        """)
 
         # --------------------------------------------------------------------
 
