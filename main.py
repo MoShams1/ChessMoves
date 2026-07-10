@@ -59,6 +59,9 @@ class Window(QWidget):
         tab_report = QWidget()
         tab_train = QWidget()
 
+        self.rb = None
+        self.cb = None
+        self.bt_dict = {}
         self.load_bt = QPushButton()
         self.player_top = QLabel()
         self.image_board = QLabel()
@@ -75,7 +78,7 @@ class Window(QWidget):
 
         lay_played_move = self.create_played_move_row()
 
-        lay_buttons, self.bt_dict = self.create_buttons(
+        lay_buttons = self.create_buttons(
             ["Load Game", "URL", "PGN", "FEN"])
 
         lay_game_phase = self.create_radiobutton_list(
@@ -310,9 +313,9 @@ class Window(QWidget):
         layout.addWidget(title)
         rb_dict = {}
         for option in options:
-            rb = QRadioButton(option)
-            rb_dict[rb] = rb
-            layout.addWidget(rb)
+            self.rb = QRadioButton(option)
+            rb_dict[self.rb] = self.rb
+            layout.addWidget(self.rb)
         return layout
 
     def create_checkbox_list(self, title, options):
@@ -323,24 +326,23 @@ class Window(QWidget):
         layout.addWidget(title)
         cb_dict = {}
         for option in options:
-            cb = QCheckBox(option)
-            cb_dict[cb] = cb
-            layout.addWidget(cb)
+            self.cb = QCheckBox(option)
+            cb_dict[self.cb] = self.cb
+            layout.addWidget(self.cb)
         return layout
 
     def create_buttons(self, buttons):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        bt_dict = {}
         for button in buttons:
             bt = QPushButton(button)
-            bt_dict[button] = bt
+            self.bt_dict[button] = bt
             if button == "Load Game":
                 bt.setFixedWidth(100)
             else:
                 bt.setFixedWidth(50)
             layout.addWidget(bt)
-        return layout, bt_dict
+        return layout
 
     def create_board(self):
         layout = QVBoxLayout()
