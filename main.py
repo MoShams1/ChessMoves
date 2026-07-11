@@ -12,6 +12,7 @@ from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 import requests
+from tags import tag_dict as tags
 
 
 # noinspection PyUnresolvedReferences
@@ -70,57 +71,60 @@ class Window(QWidget):
         lay_buttons = self.create_buttons(
             ["Load Game", "URL", "PGN", "FEN"])
 
-        lay_game_phase = self.create_radiobutton_list(
-            "Game Phase",
-            [
-                "Opening",
-                "Middlegame",
-                "Endgame"])
+        tag_layout_dict = {}
+        for key in list(tags.keys()):
+            tag_title = key.split('_')[0]
+            tag_ops = tags[key]
+            tag_type = key.split('_')[1]
+            tag_layout_dict[tag_title] = (
+                self.create_box_list(tag_title, tag_ops, tag_type))
 
-        lay_blunder_check = self.create_checkbox_list(
-            "Missed Response",
-            [
-                "Check",
-                "Capture",
-                "Threat",
-                "Protect",
-                "Block",
-                "Escape"]
-        )
-        lay_tactics = self.create_checkbox_list(
-            "Tactical Theme",
-            [
-                "Pin",
-                "Fork",
-                "Skewer",
-                "Forced Mate",
-                "Double Attack",
-                "Trapped Piece",
-                "Discovered Attack",
-                "Removal of Defender"]
-        )
 
-        lay_positional = self.create_checkbox_list(
-            "Positional Disadvantage",
-            [
-                "Spatial Control Loss",
-                "Tempo/Initiative Loss",
-                "Allowed Passed Pawn",
-                "Unfavorable Exchange",
-                "Compromised King Safety",
-                "Pawn Structure Weakness"]
-        )
 
-        lay_diagnosis = self.create_checkbox_list(
-            "Diagnosis",
-            [
-                "Fatigue",
-                "Anxiety",
-                "Time Trouble",
-                "Mis-Evaluation",
-                "Mis-Calculation",
-                "Overconfidence"]
-        )
+        # lay_blunder_check = self.create_checkbox_list(
+        #     "Missed Response",
+        #     [
+        #         "Check",
+        #         "Capture",
+        #         "Threat",
+        #         "Protect",
+        #         "Block",
+        #         "Escape"]
+        # )
+        # lay_tactics = self.create_checkbox_list(
+        #     "Tactical Theme",
+        #     [
+        #         "Pin",
+        #         "Fork",
+        #         "Skewer",
+        #         "Forced Mate",
+        #         "Double Attack",
+        #         "Trapped Piece",
+        #         "Discovered Attack",
+        #         "Removal of Defender"]
+        # )
+        #
+        # lay_positional = self.create_checkbox_list(
+        #     "Positional Disadvantage",
+        #     [
+        #         "Spatial Control Loss",
+        #         "Tempo/Initiative Loss",
+        #         "Allowed Passed Pawn",
+        #         "Unfavorable Exchange",
+        #         "Compromised King Safety",
+        #         "Pawn Structure Weakness"]
+        # )
+        #
+        # lay_diagnosis = self.create_checkbox_list(
+        #     "Diagnosis",
+        #     [
+        #         "Fatigue",
+        #         "Anxiety",
+        #         "Time Trouble",
+        #         "Mis-Evaluation",
+        #         "Mis-Calculation",
+        #         "Overconfidence"]
+        # )
 
         # --------------------------------------------------------------------
         # organize layouts
@@ -138,23 +142,23 @@ class Window(QWidget):
         board_layout.addSpacing(10)
         board_layout.addLayout(lay_played_move)
 
-        tags_layout = QHBoxLayout()
-        tags_layout.setContentsMargins(20, 35, 20, 10)
-        tags_layout_l = QVBoxLayout()
-        tags_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
-        tags_layout_r = QVBoxLayout()
-        tags_layout_r.setAlignment(Qt.AlignmentFlag.AlignTop)
-        tags_layout_l.addLayout(lay_game_phase)
-        tags_layout_l.addLayout(lay_blunder_check)
-        tags_layout_l.addLayout(lay_diagnosis)
-        tags_layout_r.addLayout(lay_tactics)
-        tags_layout_r.addLayout(lay_positional)
-        tags_layout.addLayout(tags_layout_l)
-        tags_layout.addLayout(tags_layout_r)
+        tag_layout = QHBoxLayout()
+        tag_layout.setContentsMargins(20, 35, 20, 10)
+        tag_layout_l = QVBoxLayout()
+        tag_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
+        tag_layout_r = QVBoxLayout()
+        tag_layout_r.setAlignment(Qt.AlignmentFlag.AlignTop)
+        tag_layout_l.addLayout(tag_layout_dict["Game Phase"])
+        tag_layout_l.addLayout(tag_layout_dict["Missed Response"])
+        tag_layout_l.addLayout(tag_layout_dict["Diagnosis"])
+        tag_layout_r.addLayout(tag_layout_dict["Tactical Theme"])
+        tag_layout_r.addLayout(tag_layout_dict["Positional Disadvantage"])
+        tag_layout.addLayout(tag_layout_l)
+        tag_layout.addLayout(tag_layout_r)
 
         master_layout = QHBoxLayout()
         master_layout.addLayout(board_layout, 0)
-        master_layout.addLayout(tags_layout, 1)
+        master_layout.addLayout(tag_layout, 1)
 
         tab_tag.setLayout(master_layout)
 
@@ -297,31 +301,50 @@ class Window(QWidget):
         elif event.key() == Qt.Key.Key_N:
             self.copy_text(self.game.board.fen())
 
-    def create_radiobutton_list(self, title, options):
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        title = QLabel(title)
-        title.setFont(self.header_font)
-        layout.addWidget(title)
-        self.rb_dict = {}
-        for option in options:
-            rb = QRadioButton(option)
-            self.rb_dict[rb.text()] = rb
-            layout.addWidget(rb)
-        return layout
+    # def create_radiobutton_list(self, title, options):
+    #     layout = QVBoxLayout()
+    #     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    #     title = QLabel(title)
+    #     title.setFont(self.header_font)
+    #     layout.addWidget(title)
+    #     self.rb_dict = {}
+    #     for option in options:
+    #         rb = QRadioButton(option)
+    #         self.rb_dict[rb.text()] = rb
+    #         layout.addWidget(rb)
+    #     return layout
 
-    def create_checkbox_list(self, title, options):
-        layout = QVBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-        title = QLabel(title)
-        title.setFont(self.header_font)
-        layout.addWidget(title)
-        cb_dict = {}
-        for option in options:
-            self.cb = QCheckBox(option)
-            cb_dict[self.cb] = self.cb
-            layout.addWidget(self.cb)
-        return layout
+    # def create_checkbox_list(self, title, options):
+    #     layout = QVBoxLayout()
+    #     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+    #     title = QLabel(title)
+    #     title.setFont(self.header_font)
+    #     layout.addWidget(title)
+    #     cb_dict = {}
+    #     for option in options:
+    #         self.cb = QCheckBox(option)
+    #         cb_dict[self.cb] = self.cb
+    #         layout.addWidget(self.cb)
+    #     return layout
+
+    def create_box_list(self, tag_title, tag_ops, tag_type):
+        layoutt = QVBoxLayout
+        title = QLabel(tag_title)
+        # title.setFont(self.header_font)
+        layoutt.addWidget(title)
+        # self.tag_dict = {}
+        # if tag_type == "cb":
+        #     for op in tag_ops:
+        #         tag = QCheckbox(op)
+        #         self.tag_dict[tag_title] = tag
+        #         layout.addWidget(tag)
+        # elif tag_type == "rb":
+        #     for op in tag_ops:
+        #         tag = QCheckbox(op)
+        #         self.tag_dict[tag_title] = tag
+        #         layout.addWidget(tag)
+        # else:
+        #     return
 
     def create_buttons(self, buttons):
         layout = QHBoxLayout()
@@ -392,6 +415,7 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
 
         self.update_board()
+
 
 class Game:
 
@@ -482,12 +506,14 @@ class Game:
         # extract url
         self.url = self.parsed_game.headers["Site"]
 
+
 class FixedWidthTabBar(QTabBar):
 
     def tabSizeHint(self, index):
         size = super().tabSizeHint(index)
         size.setWidth(100)
         return size
+
 
 # --------------------------------------------------------------------
 # run application
