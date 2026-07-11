@@ -1,3 +1,5 @@
+#todo: the status should reset upond pushing next move
+#todo: the status of tags should reappear once coming back to the same move
 import io
 import chess
 import chess.pgn
