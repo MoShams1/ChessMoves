@@ -1,30 +1,20 @@
+# todo: put the radio button tags and their title into one list
+# todo: for checkboxes, make a dictionary maybe?
 import io
-
 import chess
 import chess.pgn
 import chess.svg
 import cairosvg
-
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
     QRadioButton, QCheckBox, QTabWidget, QSizePolicy, QTabBar)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
-from chess import WHITE
-import numpy as np
 import requests
 
 
 # noinspection PyUnresolvedReferences
-
-
-class FixedWidthTabBar(QTabBar):
-
-    def tabSizeHint(self, index):
-        size = super().tabSizeHint(index)
-        size.setWidth(100)
-        return size
 
 
 class Window(QWidget):
@@ -59,7 +49,6 @@ class Window(QWidget):
         tab_report = QWidget()
         tab_train = QWidget()
 
-        self.rb = None
         self.cb = None
         self.bt_dict = {}
         self.load_bt = QPushButton()
@@ -265,12 +254,15 @@ class Window(QWidget):
             self.player_bottom.setText(self.game.black)
 
     def next_move(self):
+        a = ["Opening", "Middlegame", "Endgame"]
         if self.game is not None and (self.hmove_nr < len(
                 self.game.pushable_moves)):
             self.move_pushable = self.game.pushable_moves[self.hmove_nr]
             self.game.board.push(self.move_pushable)
             self.hmove_nr += 1
             self.update_board()
+            for op in a:
+                print(self.rb_dict[op].isChecked())
 
     def previous_move(self):
         if self.game is not None and self.hmove_nr > 0:
@@ -311,11 +303,11 @@ class Window(QWidget):
         title = QLabel(title)
         title.setFont(self.header_font)
         layout.addWidget(title)
-        rb_dict = {}
+        self.rb_dict = {}
         for option in options:
-            self.rb = QRadioButton(option)
-            rb_dict[self.rb] = self.rb
-            layout.addWidget(self.rb)
+            rb = QRadioButton(option)
+            self.rb_dict[rb.text()] = rb
+            layout.addWidget(rb)
         return layout
 
     def create_checkbox_list(self, title, options):
@@ -400,7 +392,6 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
 
         self.update_board()
-
 
 class Game:
 
@@ -491,6 +482,12 @@ class Game:
         # extract url
         self.url = self.parsed_game.headers["Site"]
 
+class FixedWidthTabBar(QTabBar):
+
+    def tabSizeHint(self, index):
+        size = super().tabSizeHint(index)
+        size.setWidth(100)
+        return size
 
 # --------------------------------------------------------------------
 # run application
