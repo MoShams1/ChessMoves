@@ -1,5 +1,3 @@
-# todo: put the radio button tags and their title into one list
-# todo: for checkboxes, make a dictionary maybe?
 import io
 import chess
 import chess.pgn
@@ -7,7 +5,7 @@ import chess.svg
 import cairosvg
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QRadioButton, QCheckBox, QTabWidget, QSizePolicy, QTabBar)
+    QRadioButton, QCheckBox, QTabWidget, QTabBar)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
@@ -50,7 +48,7 @@ class Window(QWidget):
         tab_report = QWidget()
         tab_train = QWidget()
 
-        self.cb = None
+        self.tag_dict = {}
         self.bt_dict = {}
         self.load_bt = QPushButton()
         self.player_top = QLabel()
@@ -77,54 +75,7 @@ class Window(QWidget):
             tag_ops = tags[key]
             tag_type = key.split('_')[1]
             tag_layout_dict[tag_title] = (
-                self.create_box_list(tag_title, tag_ops, tag_type))
-
-
-
-        # lay_blunder_check = self.create_checkbox_list(
-        #     "Missed Response",
-        #     [
-        #         "Check",
-        #         "Capture",
-        #         "Threat",
-        #         "Protect",
-        #         "Block",
-        #         "Escape"]
-        # )
-        # lay_tactics = self.create_checkbox_list(
-        #     "Tactical Theme",
-        #     [
-        #         "Pin",
-        #         "Fork",
-        #         "Skewer",
-        #         "Forced Mate",
-        #         "Double Attack",
-        #         "Trapped Piece",
-        #         "Discovered Attack",
-        #         "Removal of Defender"]
-        # )
-        #
-        # lay_positional = self.create_checkbox_list(
-        #     "Positional Disadvantage",
-        #     [
-        #         "Spatial Control Loss",
-        #         "Tempo/Initiative Loss",
-        #         "Allowed Passed Pawn",
-        #         "Unfavorable Exchange",
-        #         "Compromised King Safety",
-        #         "Pawn Structure Weakness"]
-        # )
-        #
-        # lay_diagnosis = self.create_checkbox_list(
-        #     "Diagnosis",
-        #     [
-        #         "Fatigue",
-        #         "Anxiety",
-        #         "Time Trouble",
-        #         "Mis-Evaluation",
-        #         "Mis-Calculation",
-        #         "Overconfidence"]
-        # )
+                self.create_tags(tag_title, tag_ops, tag_type))
 
         # --------------------------------------------------------------------
         # organize layouts
@@ -265,8 +216,7 @@ class Window(QWidget):
             self.game.board.push(self.move_pushable)
             self.hmove_nr += 1
             self.update_board()
-            for op in a:
-                print(self.rb_dict[op].isChecked())
+            self.read_tags()
 
     def previous_move(self):
         if self.game is not None and self.hmove_nr > 0:
@@ -301,50 +251,24 @@ class Window(QWidget):
         elif event.key() == Qt.Key.Key_N:
             self.copy_text(self.game.board.fen())
 
-    # def create_radiobutton_list(self, title, options):
-    #     layout = QVBoxLayout()
-    #     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-    #     title = QLabel(title)
-    #     title.setFont(self.header_font)
-    #     layout.addWidget(title)
-    #     self.rb_dict = {}
-    #     for option in options:
-    #         rb = QRadioButton(option)
-    #         self.rb_dict[rb.text()] = rb
-    #         layout.addWidget(rb)
-    #     return layout
-
-    # def create_checkbox_list(self, title, options):
-    #     layout = QVBoxLayout()
-    #     layout.setAlignment(Qt.AlignmentFlag.AlignTop)
-    #     title = QLabel(title)
-    #     title.setFont(self.header_font)
-    #     layout.addWidget(title)
-    #     cb_dict = {}
-    #     for option in options:
-    #         self.cb = QCheckBox(option)
-    #         cb_dict[self.cb] = self.cb
-    #         layout.addWidget(self.cb)
-    #     return layout
-
-    def create_box_list(self, tag_title, tag_ops, tag_type):
-        layoutt = QVBoxLayout
+    def create_tags(self, tag_title, tag_ops, tag_type):
+        layout = QVBoxLayout()
         title = QLabel(tag_title)
-        # title.setFont(self.header_font)
-        layoutt.addWidget(title)
-        # self.tag_dict = {}
-        # if tag_type == "cb":
-        #     for op in tag_ops:
-        #         tag = QCheckbox(op)
-        #         self.tag_dict[tag_title] = tag
-        #         layout.addWidget(tag)
-        # elif tag_type == "rb":
-        #     for op in tag_ops:
-        #         tag = QCheckbox(op)
-        #         self.tag_dict[tag_title] = tag
-        #         layout.addWidget(tag)
-        # else:
-        #     return
+        title.setFont(self.header_font)
+        layout.addWidget(title)
+        if tag_type == "cb":
+            for op in tag_ops:
+                tag = QCheckBox(op)
+                self.tag_dict[op] = tag
+                layout.addWidget(tag)
+        elif tag_type == "rb":
+            for op in tag_ops:
+                tag = QRadioButton(op)
+                self.tag_dict[op] = tag
+                layout.addWidget(tag)
+        else:
+            return
+        return layout
 
     def create_buttons(self, buttons):
         layout = QHBoxLayout()
@@ -415,6 +339,13 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
 
         self.update_board()
+
+    def read_tags(self):
+        tags_status = {}
+        for key, value in self.tag_dict.items():
+            tags_status[key] = value.isChecked()
+        print(tags_status)
+
 
 
 class Game:

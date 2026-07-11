@@ -18,12 +18,14 @@ tag_dict = {
     "Tactical Theme_cb": [
         "Pin",
         "Fork",
+        "X-Ray",
         "Skewer",
         "Forced Mate",
+        "Zwischenzug",
         "Double Attack",
         "Trapped Piece",
         "Discovered Attack",
-        "Removal of Defender"
+        "Overworked Defender"
     ],
 
     "Positional Disadvantage_cb": [
@@ -38,6 +40,7 @@ tag_dict = {
     "Diagnosis_cb": [
         "Fatigue",
         "Anxiety",
+        "Oversight",
         "Time Trouble",
         "Mis-Evaluation",
         "Mis-Calculation",
