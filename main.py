@@ -1,5 +1,4 @@
-# DONE the status should reset upon pushing next move
-#todo: the status of tags should reappear once coming back to the same move
+# todo: the status of tags should reappear once coming back to the same move
 import io
 import chess
 import chess.pgn
@@ -51,6 +50,8 @@ class Window(QWidget):
         tab_train = QWidget()
 
         self.tag_dict = {}
+        self.tag_move_list = []
+
         self.bt_dict = {}
         self.load_bt = QPushButton()
         self.player_top = QLabel()
@@ -211,21 +212,43 @@ class Window(QWidget):
             self.player_bottom.setText(self.game.black)
 
     def next_move(self):
-        a = ["Opening", "Middlegame", "Endgame"]
-        if self.game is not None and (self.hmove_nr < len(
-                self.game.pushable_moves)):
+        if (
+                self.game is not None
+                and
+                (self.hmove_nr < len(self.game.pushable_moves))
+        ):
             self.move_pushable = self.game.pushable_moves[self.hmove_nr]
             self.game.board.push(self.move_pushable)
+            self.reset_tags()
             self.hmove_nr += 1
             self.update_board()
-            self.read_tags()
-            self.reset_tags()
+            self.tag_move_list.append(self.read_tags())
+            # print(self.tag_dict.values())
 
     def previous_move(self):
-        if self.game is not None and self.hmove_nr > 0:
+        if (
+                self.game is not None
+                and
+                self.hmove_nr > 0
+        ):
             self.game.board.pop()
             self.hmove_nr -= 1
             self.update_board()
+            # reload tags from hmove_nr index
+            # print(self.tag_move_list[self.hmove_nr])
+            tag_status_dict = self.tag_move_list[self.hmove_nr]
+            # print(tag_status_dict)
+            # for key, value in tag_status_dict.items():
+            #     print(self.tag_dict[key].isChecked())
+            # self.tag_dict[key].setChecked(value)
+            # print(self.tag_dict.values())
+
+        # for key in self.tag_dict.values():
+        #     self.tag_dict.values
+
+        # for key, value in self.tag_dict.items():
+        #     tag_status_dict[key] = value.isChecked()
+        # self.tag_status_list.append(tag_status_dict)
 
     def keyPressEvent(self, event):
 
@@ -323,7 +346,8 @@ class Window(QWidget):
         QApplication.clipboard().setText(text)
 
     def load_game(self):
-        game_url = QApplication.clipboard().text()
+        # game_url = QApplication.clipboard().text()
+        game_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
         if "study" in game_url:
             my_token = "lip_XB7WRyKqvpEnfFW9iHox"
             game_id = game_url.split("study/")[1]
@@ -344,14 +368,14 @@ class Window(QWidget):
         self.update_board()
 
     def read_tags(self):
-        tags_status = {}
+        tag_status_dict = {}
         for key, value in self.tag_dict.items():
-            tags_status[key] = value.isChecked()
+            tag_status_dict[key] = value.isChecked()
+        return tag_status_dict
 
     def reset_tags(self):
         for value in self.tag_dict.values():
             value.setChecked(False)
-
 
 
 class Game:
