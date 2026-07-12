@@ -1,4 +1,4 @@
-#todo: the status should reset upond pushing next move
+# DONE the status should reset upon pushing next move
 #todo: the status of tags should reappear once coming back to the same move
 import io
 import chess
@@ -219,6 +219,7 @@ class Window(QWidget):
             self.hmove_nr += 1
             self.update_board()
             self.read_tags()
+            self.reset_tags()
 
     def previous_move(self):
         if self.game is not None and self.hmove_nr > 0:
@@ -346,7 +347,10 @@ class Window(QWidget):
         tags_status = {}
         for key, value in self.tag_dict.items():
             tags_status[key] = value.isChecked()
-        print(tags_status)
+
+    def reset_tags(self):
+        for value in self.tag_dict.values():
+            value.setChecked(False)
 
 
 

@@ -25,6 +25,7 @@ tag_dict = {
         "Double Attack",
         "Trapped Piece",
         "Discovered Attack",
+        "Removal of Defender",
         "Overworked Defender"
     ],
 
