@@ -1,4 +1,4 @@
-# todo: the status of tags should reappear once coming back to the same move
+#todo: group radiobuttons to allow setCheck(false) -- now one is always checked
 import io
 import chess
 import chess.pgn
@@ -50,8 +50,6 @@ class Window(QWidget):
         tab_train = QWidget()
 
         self.tag_dict = {}
-        self.tag_move_list = []
-
         self.bt_dict = {}
         self.load_bt = QPushButton()
         self.player_top = QLabel()
@@ -217,13 +215,16 @@ class Window(QWidget):
                 and
                 (self.hmove_nr < len(self.game.pushable_moves))
         ):
-            self.move_pushable = self.game.pushable_moves[self.hmove_nr]
-            self.game.board.push(self.move_pushable)
-            self.reset_tags()
+            if self.hmove_nr > 0:
+                self.save_tags(tag_list=self.read_tags(),
+                               hmove_nr=self.hmove_nr)
             self.hmove_nr += 1
+            self.reset_tags()
+            self.load_tags(hmove_nr=self.hmove_nr)
+
+            self.move_pushable = self.game.pushable_moves[self.hmove_nr - 1]
+            self.game.board.push(self.move_pushable)
             self.update_board()
-            self.tag_move_list.append(self.read_tags())
-            # print(self.tag_dict.values())
 
     def previous_move(self):
         if (
@@ -231,24 +232,19 @@ class Window(QWidget):
                 and
                 self.hmove_nr > 0
         ):
-            self.game.board.pop()
+            self.save_tags(tag_list=self.read_tags(),
+                           hmove_nr=self.hmove_nr)
             self.hmove_nr -= 1
+            self.reset_tags()
+            self.load_tags(hmove_nr=self.hmove_nr)
+
+            if self.hmove_nr == 0:
+                self.move_notation.setText("-")
+                self.move_cost.setText("-")
+                self.eval.setText("-")
+
+            self.game.board.pop()
             self.update_board()
-            # reload tags from hmove_nr index
-            # print(self.tag_move_list[self.hmove_nr])
-            tag_status_dict = self.tag_move_list[self.hmove_nr]
-            # print(tag_status_dict)
-            # for key, value in tag_status_dict.items():
-            #     print(self.tag_dict[key].isChecked())
-            # self.tag_dict[key].setChecked(value)
-            # print(self.tag_dict.values())
-
-        # for key in self.tag_dict.values():
-        #     self.tag_dict.values
-
-        # for key, value in self.tag_dict.items():
-        #     tag_status_dict[key] = value.isChecked()
-        # self.tag_status_list.append(tag_status_dict)
 
     def keyPressEvent(self, event):
 
@@ -368,10 +364,19 @@ class Window(QWidget):
         self.update_board()
 
     def read_tags(self):
-        tag_status_dict = {}
+        tag_list = []
         for key, value in self.tag_dict.items():
-            tag_status_dict[key] = value.isChecked()
-        return tag_status_dict
+            if value.isChecked():
+                tag_list.append(key)
+        return tag_list
+
+    def save_tags(self, tag_list, hmove_nr):
+        self.game.tag_move_list[hmove_nr - 1] = tag_list
+
+    def load_tags(self, hmove_nr):
+        tag_list = self.game.tag_move_list[hmove_nr - 1]
+        for tag in tag_list:
+            self.tag_dict[tag].setChecked(True)
 
     def reset_tags(self):
         for value in self.tag_dict.values():
@@ -466,6 +471,9 @@ class Game:
         # ----------------------------------------------------------------
         # extract url
         self.url = self.parsed_game.headers["Site"]
+
+        # create a preallocated list to store tags for each move
+        self.tag_move_list = [[] for _ in range(len(self.moves))]
 
 
 class FixedWidthTabBar(QTabBar):
