@@ -1,4 +1,4 @@
-#todo: group radiobuttons to allow setCheck(false) -- now one is always checked
+
 import io
 import chess
 import chess.pgn
@@ -6,7 +6,7 @@ import chess.svg
 import cairosvg
 from PyQt6.QtWidgets import (
     QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QRadioButton, QCheckBox, QTabWidget, QTabBar)
+    QButtonGroup, QRadioButton, QCheckBox, QTabWidget, QTabBar)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
@@ -284,8 +284,10 @@ class Window(QWidget):
                 self.tag_dict[op] = tag
                 layout.addWidget(tag)
         elif tag_type == "rb":
+            self.rb_group = QButtonGroup()
             for op in tag_ops:
                 tag = QRadioButton(op)
+                self.rb_group.addButton(tag)
                 self.tag_dict[op] = tag
                 layout.addWidget(tag)
         else:
@@ -379,8 +381,10 @@ class Window(QWidget):
             self.tag_dict[tag].setChecked(True)
 
     def reset_tags(self):
+        self.rb_group.setExclusive(False)
         for value in self.tag_dict.values():
             value.setChecked(False)
+        self.rb_group.setExclusive(True)
 
 
 class Game:
