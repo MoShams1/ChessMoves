@@ -11,6 +11,8 @@ from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 import requests
+
+import database
 from tags import tag_dict as tags
 
 
@@ -273,6 +275,9 @@ class Window(QWidget):
         elif event.key() == Qt.Key.Key_N:
             self.copy_text(self.game.board.fen())
 
+        elif event.key() == Qt.Key.Key_S:
+            self.save_analysis()
+
     def create_tags(self, tag_title, tag_ops, tag_type):
         layout = QVBoxLayout()
         title = QLabel(tag_title)
@@ -385,6 +390,9 @@ class Window(QWidget):
         for value in self.tag_dict.values():
             value.setChecked(False)
         self.rb_group.setExclusive(True)
+
+    def save_analysis(self):
+        database.initialize_database()
 
 
 class Game:
