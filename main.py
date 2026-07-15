@@ -12,7 +12,7 @@ from PyQt6.QtCore import Qt
 from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 import requests
 
-import database
+import database as db
 from tags import tag_dict as tags
 
 
@@ -350,17 +350,18 @@ class Window(QWidget):
 
     def load_game(self):
         # game_url = QApplication.clipboard().text()
-        game_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
+        # game_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
+        game_url = "https://lichess.org/HbXe1F1j/black"
         if "study" in game_url:
             my_token = "lip_XB7WRyKqvpEnfFW9iHox"
-            game_id = game_url.split("study/")[1]
+            self.game_id = game_url.split("study/")[1]
             req_game = requests.get(
-                f"https://lichess.org/api/study/{game_id}.pgn",
+                f"https://lichess.org/api/study/{self.game_id}.pgn",
                 headers={"Authorization": f"Bearer {my_token}"})
         else:
-            game_id = game_url.split(".org/")[1].split("/")[0]
+            self.game_id = game_url.split(".org/")[1].split("/")[0]
             req_game = requests.get(
-                f"https://lichess.org/game/export/{game_id}")
+                f"https://lichess.org/game/export/{self.game_id}")
 
         self.game = Game(req_game)
 
@@ -392,7 +393,11 @@ class Window(QWidget):
         self.rb_group.setExclusive(True)
 
     def save_analysis(self):
-        database.initialize_database()
+        db.initialize_database()
+        db.save_game(lichess_id=self.game_id,
+                     date=self.game.date,
+                     white=self.game.white,
+                     black=self.game.black)
 
 
 class Game:

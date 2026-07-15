@@ -37,3 +37,22 @@ def initialize_database(db_name="chess_moves.db"):
 
     conn.commit()
     conn.close()
+
+def save_game(lichess_id, date, white, black, db_name="chess_moves.db"):
+
+    conn = sqlite3.connect(db_name)
+    cursor = conn.cursor()
+
+    cursor.execute("""        
+        INSERT INTO games
+        (lichess_id, date, white, black)
+        VALUES(?, ?, ?, ?)        
+        """, (
+        lichess_id,
+        date,
+        white,
+        black
+    ))
+
+    conn.commit()
+    conn.close()
