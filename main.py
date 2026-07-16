@@ -398,6 +398,9 @@ class Window(QWidget):
                      date=self.game.date,
                      white=self.game.white,
                      black=self.game.black)
+        # db.save_moves_tags(hmove_nr=self.hmove_nr,
+        #                    move_cost=self.move_cost,
+        #                    tag=)
 
 
 class Game:
