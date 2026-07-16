@@ -1,13 +1,23 @@
+
+
 import io
-import os
 import chess
 import chess.pgn
 import chess.svg
 import cairosvg
-from PyQt6.QtWidgets import (
-    QApplication, QLabel, QWidget, QPushButton, QVBoxLayout, QHBoxLayout,
-    QButtonGroup, QRadioButton, QCheckBox, QTabWidget, QTabBar)
-from PyQt6.QtGui import QPixmap, QFont
+from PyQt6.QtWidgets import (QApplication,
+                             QLabel,
+                             QWidget,
+                             QPushButton,
+                             QVBoxLayout,
+                             QHBoxLayout,
+                             QButtonGroup,
+                             QRadioButton,
+                             QCheckBox,
+                             QTabWidget,
+                             QTabBar)
+from PyQt6.QtGui import (QPixmap,
+                         QFont)
 from PyQt6.QtCore import Qt
 import requests
 import sqlite3
