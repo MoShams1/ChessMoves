@@ -1,9 +1,4 @@
-import sqlite3
-
-
-def initialize_database(db_name="chess_moves.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+def initialize_database(cursor):
 
     cursor.executescript("""
         CREATE TABLE IF NOT EXISTS games (
@@ -28,19 +23,14 @@ def initialize_database(db_name="chess_moves.db"):
         );   
         
         CREATE TABLE IF NOT EXISTS moves_tags (
+            move_tag_id INTEGER PRIMARY KEY,
             move_id INTEGER REFERENCES moves(move_id),
-            tag_id INTEGER REFERENCES tags(tag_id),
-            PRIMARY KEY (move_id, tag_id)            
+            tag_id INTEGER REFERENCES tags(tag_id)
         );
     """)
 
-    conn.commit()
-    conn.close()
 
-
-def save_game(lichess_id, date, white, black, db_name="chess_moves.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+def save_game(cursor, lichess_id, date, white, black):
 
     cursor.execute("""        
         INSERT INTO games
@@ -53,20 +43,15 @@ def save_game(lichess_id, date, white, black, db_name="chess_moves.db"):
         black
     ))
     cursor.execute("""
-        SELECT move_id FROM mvoes
+        SELECT game_id FROM games
         WHERE lichess_id = ?
         """, (lichess_id,))
     game_id = cursor.fetchone()[0]
 
-    conn.commit()
-    conn.close()
-
     return game_id
 
 
-def save_moves(game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+def save_move(cursor, game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
 
     cursor.execute("""
         INSERT INTO moves
@@ -78,7 +63,7 @@ def save_moves(game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
         move_cost
     ))
     cursor.execute("""
-        SELECT move_id FROM mvoes
+        SELECT move_id FROM moves
         WHERE game_id = ? AND hmove_nr = ?
         """, (
         game_id,
@@ -89,9 +74,7 @@ def save_moves(game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
     return move_id
 
 
-def save_tags(tag, db_name="chess_moves.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+def save_tag(cursor, tag, db_name="chess_moves.db"):
 
     cursor.execute("""
         INSERT OR IGNORE INTO tags
@@ -107,9 +90,8 @@ def save_tags(tag, db_name="chess_moves.db"):
     return tag_id
 
 
-def save_moves_tags(move_id, tag_id, db_name="chess_moves.db"):
-    conn = sqlite3.connect(db_name)
-    cursor = conn.cursor()
+def save_move_tag(cursor, move_id, tag_id, db_name="chess_moves.db"):
+
     cursor.execute("""
         INSERT INTO moves_tags
         (move_id, tag_id)
@@ -123,8 +105,5 @@ def save_moves_tags(move_id, tag_id, db_name="chess_moves.db"):
             WHERE move_id = ? AND tag_id = ?
             """, (move_id, tag_id))
     move_tag_id = cursor.fetchone()[0]
-
-    conn.commit()
-    conn.close()
 
     return move_tag_id

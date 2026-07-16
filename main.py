@@ -1,5 +1,5 @@
-
 import io
+import os
 import chess
 import chess.pgn
 import chess.svg
@@ -9,9 +9,8 @@ from PyQt6.QtWidgets import (
     QButtonGroup, QRadioButton, QCheckBox, QTabWidget, QTabBar)
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtCore import Qt
-from PyQt6.QtSql import QSqlDatabase, QSqlQuery
 import requests
-
+import sqlite3
 import database as db
 from tags import tag_dict as tags
 
@@ -393,14 +392,47 @@ class Window(QWidget):
         self.rb_group.setExclusive(True)
 
     def save_analysis(self):
-        db.initialize_database()
-        db.save_game(lichess_id=self.game_id,
-                     date=self.game.date,
-                     white=self.game.white,
-                     black=self.game.black)
-        # db.save_moves_tags(hmove_nr=self.hmove_nr,
-        #                    move_cost=self.move_cost,
-        #                    tag=)
+
+        tag_list = self.read_tags()
+        self.save_tags(tag_list, self.hmove_nr)
+
+        db_file_name = "chess_moves.db"
+        conn = sqlite3.connect(db_file_name)
+        cursor = conn.cursor()
+
+        db.initialize_database(cursor)
+
+        game_id = db.save_game(cursor=cursor,
+                               lichess_id=self.game_id,
+                               date=self.game.date,
+                               white=self.game.white,
+                               black=self.game.black)
+
+        for imove in range(self.hmove_nr):
+            move_id = db.save_move(cursor=cursor,
+                                   game_id=game_id,
+                                   hmove_nr=imove + 1,
+                                   move_cost=self.game.cost_list[imove])
+
+            tag_list = self.game.tag_move_list[imove]
+            for tag in tag_list:
+                tag_id = db.save_tag(cursor=cursor,
+                                     tag=tag)
+
+                db.save_move_tag(cursor=cursor,
+                                 move_id=move_id,
+                                 tag_id=tag_id)
+
+        try:
+            # all database operations
+            conn.commit()
+
+        except Exception:
+            conn.rollback()
+            raise
+
+        finally:
+            conn.close()
 
 
 class Game:
