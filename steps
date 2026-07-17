@@ -6,7 +6,7 @@ CHESS ANNOTATOR
 
 [done] add "save analysis" button
 [] show a message box after button clicks
-[done] show the shortkey while hovering over a key
+donepy] show the shortkey while hovering over a key
 
 [] warn the user when the loaded game exists in the db
 [] load the tags when the game already exists in the databse

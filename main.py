@@ -63,10 +63,10 @@ class Window(QWidget):
 
         self.tag_widgets = {}
         self.button_widgets = {}
-        self.player_top = QLabel()
-        self.player_top.setFont(self.player_font)
-        self.player_bottom = QLabel()
-        self.player_bottom.setFont(self.player_font)
+        self.player_top_lbl = QLabel()
+        self.player_top_lbl.setFont(self.player_font)
+        self.player_bottom_lbl = QLabel()
+        self.player_bottom_lbl.setFont(self.player_font)
         self.image_board = QLabel()
         self.pixmap = QPixmap()
         self.move_notation = QLabel()
@@ -148,8 +148,8 @@ class Window(QWidget):
         self.pixmap.loadFromData(pngimage)
         self.image_board.setPixmap(self.pixmap)
 
-        self.player_top.setText("?")
-        self.player_bottom.setText("?")
+        self.player_top_lbl.setText("?")
+        self.player_bottom_lbl.setText("?")
         self.move_notation.setText("?")
         self.move_cost.setText("?")
         self.eval.setText("?")
@@ -228,12 +228,12 @@ class Window(QWidget):
 
     def set_board_orientation(self):
         if self.flip_flag:
-            self.player_top.setText(self.game.black)
-            self.player_bottom.setText(self.game.white)
+            self.player_top_lbl.setText(self.game.black)
+            self.player_bottom_lbl.setText(self.game.white)
 
         if not self.flip_flag:
-            self.player_top.setText(self.game.white)
-            self.player_bottom.setText(self.game.black)
+            self.player_top_lbl.setText(self.game.white)
+            self.player_bottom_lbl.setText(self.game.black)
 
     def next_move(self):
         if (
@@ -302,6 +302,66 @@ class Window(QWidget):
         elif event.key() == Qt.Key.Key_S:
             self.save_analysis()
 
+    # ///////////////////////////////////////////////////////////////////////
+    # CREATE LAYOUTS
+
+    def create_board_layout(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.player_top_lbl)
+        layout.addWidget(self.image_board)
+        layout.addWidget(self.player_bottom_lbl)
+        return layout
+
+    def create_button_layout(self):
+        button_names = ["Load", "URL", "PGN", "FEN", "Save"]
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout.setContentsMargins(0, 15, 0, 0)
+        button_tootips = {
+            "Load": "Load game from Lichess (L)",
+            "URL": "Copy Lichess URL (U)",
+            "PGN": "Copy PGN of current game (P)",
+            "FEN": "Copy FEN of current position (N)",
+            "Save": "Save tags into database (S)"
+        }
+        for button_name in button_names:
+            button_widget = QPushButton(button_name)
+            button_widget.setToolTip(button_tootips[button_name])
+            self.button_widgets[button_name] = button_widget
+            if button_name == "Load" or button_name == "Save":
+                button_widget.setFixedWidth(100)
+            else:
+                button_widget.setFixedWidth(70)
+            layout.addWidget(button_widget)
+        return layout
+
+    def create_evaluation_layout(self):
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+        layout.setContentsMargins(20, 30, 0, 15)
+        layout_title = QVBoxLayout()
+        layout_value = QVBoxLayout()
+        move_label = QLabel("Move:")
+        move_label.setFont(self.header_font)
+        cost_label = QLabel("Cost:")
+        cost_label.setFont(self.header_font)
+        eval_label = QLabel("Evaluation:")
+        eval_label.setFont(self.header_font)
+
+        layout_title.addWidget(move_label)
+        layout_title.addWidget(cost_label)
+        layout_title.addWidget(eval_label)
+
+        layout_value.addWidget(self.move_notation)
+        layout_value.addWidget(self.move_cost)
+        layout_value.addWidget(self.eval)
+
+        layout.addLayout(layout_title)
+        layout.addSpacing(10)
+        layout.addLayout(layout_value)
+
+        return layout
+
     def create_tag_layout(self):
 
         layout = QHBoxLayout()
@@ -360,62 +420,8 @@ class Window(QWidget):
 
         return layout
 
-    def create_button_layout(self):
-        button_names = ["Load", "URL", "PGN", "FEN", "Save"]
-        layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.setContentsMargins(0, 15, 0, 0)
-        button_tootips = {
-            "Load": "Load game from Lichess (L)",
-            "URL": "Copy Lichess URL (U)",
-            "PGN": "Copy PGN of current game (P)",
-            "FEN": "Copy FEN of current position (N)",
-            "Save": "Save tags into database (S)"
-        }
-        for button_name in button_names:
-            button_widget = QPushButton(button_name)
-            button_widget.setToolTip(button_tootips[button_name])
-            self.button_widgets[button_name] = button_widget
-            if button_name == "Load" or button_name == "Save":
-                button_widget.setFixedWidth(100)
-            else:
-                button_widget.setFixedWidth(70)
-            layout.addWidget(button_widget)
-        return layout
-
-    def create_board_layout(self):
-        layout = QVBoxLayout()
-        layout.addWidget(self.player_top)
-        layout.addWidget(self.image_board)
-        layout.addWidget(self.player_bottom)
-        return layout
-
-    def create_evaluation_layout(self):
-        layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.setContentsMargins(20, 30, 0, 15)
-        layout_title = QVBoxLayout()
-        layout_value = QVBoxLayout()
-        move_label = QLabel("Move:")
-        move_label.setFont(self.header_font)
-        cost_label = QLabel("Cost:")
-        cost_label.setFont(self.header_font)
-        eval_label = QLabel("Evaluation:")
-        eval_label.setFont(self.header_font)
-
-        layout_title.addWidget(move_label)
-        layout_title.addWidget(cost_label)
-        layout_title.addWidget(eval_label)
-
-        layout_value.addWidget(self.move_notation)
-        layout_value.addWidget(self.move_cost)
-        layout_value.addWidget(self.eval)
-
-        layout.addLayout(layout_title)
-        layout.addSpacing(10)
-        layout.addLayout(layout_value)
-
-        return layout
+    # ///////////////////////////////////////////////////////////////////////
+    #
 
     def copy_text(self, text):
         QApplication.clipboard().setText(text)
@@ -506,6 +512,14 @@ class Window(QWidget):
 
         finally:
             conn.close()
+
+
+class FixedWidthTabBar(QTabBar):
+
+    def tabSizeHint(self, index):
+        size = super().tabSizeHint(index)
+        size.setWidth(100)
+        return size
 
 
 class Game:
@@ -602,14 +616,6 @@ class Game:
 
         # create a preallocated list to store tags for each move
         self.tag_move_list = [[] for _ in range(len(self.moves))]
-
-
-class FixedWidthTabBar(QTabBar):
-
-    def tabSizeHint(self, index):
-        size = super().tabSizeHint(index)
-        size.setWidth(100)
-        return size
 
 
 # --------------------------------------------------------------------
