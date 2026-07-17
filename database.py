@@ -49,14 +49,14 @@ def save_game(cursor, lichess_id, date, white, black):
     return game_id
 
 
-def save_move(cursor, game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
+def save_move(cursor, game_id, move_nr, move_cost, db_name="chess_moves.db"):
     cursor.execute("""
         INSERT INTO moves
         (game_id, hmove_nr, move_cost)
         VALUES(?, ?, ?)        
         """, (
         game_id,
-        hmove_nr,
+        move_nr,
         move_cost
     ))
     cursor.execute("""
@@ -64,7 +64,7 @@ def save_move(cursor, game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
         WHERE game_id = ? AND hmove_nr = ?
         """, (
         game_id,
-        hmove_nr
+        move_nr
     ))
     move_id = cursor.fetchone()[0]
 

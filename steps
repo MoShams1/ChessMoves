@@ -2,11 +2,11 @@
 ------------------------------------
 CHESS ANNOTATOR
 
-[] rename the variables and follow a convention
+[] rename the variables and follow a convention [crucial for maintenance/extension]
 
 [done] add "save analysis" button
 [] show a message box after button clicks
-[donw] show the shortkey while hovering over a key
+[done] show the shortkey while hovering over a key
 
 [] warn the user when the loaded game exists in the db
 [] load the tags when the game already exists in the databse

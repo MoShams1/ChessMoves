@@ -1,4 +1,4 @@
-tag_dict = {
+tag_source = {
 
     "GAME PHASE_rb": [
         "Opening",

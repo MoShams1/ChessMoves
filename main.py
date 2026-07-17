@@ -6,10 +6,9 @@ import requests
 import chess.pgn
 import chess.svg
 import database as db
+from tags import tag_source
 from PyQt6.QtCore import Qt
-from PyQt6.QtGui import (QPixmap,
-                         QFont)
-from tags import tag_dict as tags
+from PyQt6.QtGui import (QPixmap, QFont)
 from PyQt6.QtWidgets import (QApplication,
                              QLabel,
                              QWidget,
@@ -20,7 +19,8 @@ from PyQt6.QtWidgets import (QApplication,
                              QRadioButton,
                              QCheckBox,
                              QTabWidget,
-                             QTabBar, QFrame)
+                             QTabBar,
+                             QFrame)
 
 
 # noinspection PyUnresolvedReferences
@@ -43,9 +43,9 @@ class Window(QWidget):
         # attributes
 
         self.game = None
-        self.move_pushable = None
+        self.move_obj = None
         self.flip_flag = True
-        self.hmove_nr = 0
+        self.current_move_num = 0
 
         self.header_font = QFont()
         self.header_font.setBold(True)
@@ -61,8 +61,8 @@ class Window(QWidget):
         tab_report = QWidget()
         tab_train = QWidget()
 
-        self.tag_dict = {}
-        self.bt_dict = {}
+        self.tag_widgets = {}
+        self.button_widgets = {}
         self.player_top = QLabel()
         self.player_top.setFont(self.player_font)
         self.player_bottom = QLabel()
@@ -79,59 +79,30 @@ class Window(QWidget):
         self.frame.setStyleSheet("#MyFrame { border: 3px solid #262626; }")
 
         # --------------------------------------------------------------------
-        # create widgets and layouts
+        # create layouts
 
-        lay_board = self.create_board()
-
-        lay_played_move = self.create_played_move_info()
-
-        lay_buttons = self.create_buttons(["Load",
-                                           "URL",
-                                           "PGN",
-                                           "FEN",
-                                           "Save"])
-
-        tag_layout_dict = {}
-        for key in list(tags.keys()):
-            tag_title = key.split('_')[0]
-            tag_ops = tags[key]
-            tag_type = key.split('_')[1]
-            tag_layout_dict[tag_title] = (
-                self.create_tags(tag_title, tag_ops, tag_type))
+        board_layout = self.create_board_layout()
+        button_layout = self.create_button_layout()
+        evaluation_layout = self.create_evaluation_layout()
+        tag_layout = self.create_tag_layout()
 
         # --------------------------------------------------------------------
         # organize layouts
 
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
+
         self.layout().addWidget(self.tabs)
 
-        board_layout = QVBoxLayout()
-        board_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                  Qt.AlignmentFlag.AlignHCenter)
-        board_layout.addLayout(lay_board)
-        board_layout.addLayout(lay_played_move)
-        board_layout.addLayout(lay_buttons)
-
-        tag_layout = QHBoxLayout()
-        tag_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                Qt.AlignmentFlag.AlignHCenter)
-        tag_layout.setContentsMargins(25, 15, 0, 0)
-        tag_layout_l = QVBoxLayout()
-        tag_layout_l.setAlignment(Qt.AlignmentFlag.AlignTop)
-        tag_layout_r = QVBoxLayout()
-        tag_layout_r.setAlignment(Qt.AlignmentFlag.AlignTop)
-        tag_layout_l.addLayout(tag_layout_dict["GAME PHASE"])
-        tag_layout_l.addLayout(tag_layout_dict["MISSED RESPONSE"])
-        tag_layout_l.addLayout(tag_layout_dict["DIAGNOSIS"])
-        tag_layout_r.addLayout(tag_layout_dict["TACTICAL THEME"])
-        tag_layout_r.addLayout(tag_layout_dict["POSITIONAL DISADVANTAGE"])
-        tag_layout.addLayout(tag_layout_l)
-        tag_layout.addSpacing(20)
-        tag_layout.addLayout(tag_layout_r)
+        game_layout = QVBoxLayout()
+        game_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
+                                 Qt.AlignmentFlag.AlignHCenter)
+        game_layout.addLayout(board_layout)
+        game_layout.addLayout(evaluation_layout)
+        game_layout.addLayout(button_layout)
 
         master_layout = QHBoxLayout()
-        master_layout.addLayout(board_layout, 4)
+        master_layout.addLayout(game_layout, 4)
         master_layout.addLayout(tag_layout, 3)
         master_layout.setContentsMargins(50, 30, 50, 30)
 
@@ -148,21 +119,21 @@ class Window(QWidget):
         # --------------------------------------------------------------------
         # button connections
 
-        self.bt_dict["Load"].clicked.connect(self.load_game)
+        self.button_widgets["Load"].clicked.connect(self.load_game)
 
-        self.bt_dict["URL"].clicked.connect(
+        self.button_widgets["URL"].clicked.connect(
             lambda: self.copy_text(self.game.url))
-        self.bt_dict["PGN"].clicked.connect(
+        self.button_widgets["PGN"].clicked.connect(
             lambda: self.copy_text(self.game.pgn))
-        self.bt_dict["FEN"].clicked.connect(
+        self.button_widgets["FEN"].clicked.connect(
             lambda: self.copy_text(self.game.board.fen()))
 
-        self.bt_dict["Save"].clicked.connect(self.save_analysis)
+        self.button_widgets["Save"].clicked.connect(self.save_analysis)
 
     def initialize_board(self):
         svgimage = chess.svg.board(board=chess.Board(),
                                    orientation=self.flip_flag,
-                                   lastmove=self.move_pushable,
+                                   lastmove=self.move_obj,
                                    colors={
                                        "square light": "#B0AA98",
                                        "square dark": "#827A68",
@@ -186,7 +157,7 @@ class Window(QWidget):
     def update_board(self):
         svgimage = chess.svg.board(board=self.game.board,
                                    orientation=self.flip_flag,
-                                   lastmove=self.move_pushable,
+                                   lastmove=self.move_obj,
                                    colors={
                                        "square light": "#B0AA98",
                                        "square dark": "#827A68",
@@ -203,23 +174,23 @@ class Window(QWidget):
 
         self.set_board_orientation()
 
-        if self.hmove_nr > 0:
+        if self.current_move_num > 0:
 
-            if self.hmove_nr % 2 == 1:
-                prefix = f"{(self.hmove_nr + 1) // 2}. "
+            if self.current_move_num % 2 == 1:
+                prefix = f"{(self.current_move_num + 1) // 2}. "
 
             else:
-                prefix = f"{self.hmove_nr // 2}... "
+                prefix = f"{self.current_move_num // 2}... "
 
             self.move_notation.setText(
-                f"{prefix}{self.game.moves[self.hmove_nr - 1]}")
+                f"{prefix}{self.game.moves[self.current_move_num - 1]}")
 
             self.move_cost.setText(
-                f"{self.game.cost_list[self.hmove_nr - 1]}")
+                f"{self.game.cost_list[self.current_move_num - 1]}")
 
             self.set_move_color()
 
-            current_eval = self.game.eval_list[self.hmove_nr - 1]
+            current_eval = self.game.eval_list[self.current_move_num - 1]
 
             if isinstance(current_eval, float):
                 if not (current_eval < 0):
@@ -268,32 +239,32 @@ class Window(QWidget):
         if (
                 self.game is not None
                 and
-                (self.hmove_nr < len(self.game.pushable_moves))
+                (self.current_move_num < len(self.game.move_obj_list))
         ):
-            if self.hmove_nr > 0:
+            if self.current_move_num > 0:
                 self.save_tags(tag_list=self.read_tags(),
-                               hmove_nr=self.hmove_nr)
-            self.hmove_nr += 1
+                               move_nr=self.current_move_num)
+            self.current_move_num += 1
             self.reset_tags()
-            self.load_tags(hmove_nr=self.hmove_nr)
+            self.load_tags(move_nr=self.current_move_num)
 
-            self.move_pushable = self.game.pushable_moves[self.hmove_nr - 1]
-            self.game.board.push(self.move_pushable)
+            self.move_obj = self.game.move_obj_list[self.current_move_num - 1]
+            self.game.board.push(self.move_obj)
             self.update_board()
 
     def previous_move(self):
         if (
                 self.game is not None
                 and
-                self.hmove_nr > 0
+                self.current_move_num > 0
         ):
             self.save_tags(tag_list=self.read_tags(),
-                           hmove_nr=self.hmove_nr)
-            self.hmove_nr -= 1
+                           move_nr=self.current_move_num)
+            self.current_move_num -= 1
             self.reset_tags()
-            self.load_tags(hmove_nr=self.hmove_nr)
+            self.load_tags(move_nr=self.current_move_num)
 
-            if self.hmove_nr == 0:
+            if self.current_move_num == 0:
                 self.move_notation.setText("-")
                 self.move_cost.setText("-")
                 self.eval.setText("-")
@@ -331,58 +302,95 @@ class Window(QWidget):
         elif event.key() == Qt.Key.Key_S:
             self.save_analysis()
 
-    def create_tags(self, tag_title, tag_ops, tag_type):
-        layout = QVBoxLayout()
-        layout.addSpacing(20)
-        title = QLabel(tag_title)
-        title.setFont(self.header_font)
-        layout.addWidget(title)
-        if tag_type == "cb":
-            for op in tag_ops:
-                tag = QCheckBox(op)
-                self.tag_dict[op] = tag
-                layout.addWidget(tag)
-        elif tag_type == "rb":
-            self.rb_group = QButtonGroup()
-            for op in tag_ops:
-                tag = QRadioButton(op)
-                self.rb_group.addButton(tag)
-                self.tag_dict[op] = tag
-                layout.addWidget(tag)
-        else:
-            return
+    def create_tag_layout(self):
+
+        layout = QHBoxLayout()
+        layout.setAlignment(Qt.AlignmentFlag.AlignTop |
+                            Qt.AlignmentFlag.AlignHCenter)
+        layout.setContentsMargins(25, 15, 0, 0)
+
+        layout_left = QVBoxLayout()
+        layout_left.setAlignment(Qt.AlignmentFlag.AlignTop)
+        layout_right = QVBoxLayout()
+        layout_right.setAlignment(Qt.AlignmentFlag.AlignTop)
+
+        for key in list(tag_source.keys()):
+
+            header = key.split('_')[0]
+            options = tag_source[key]
+            box_type = key.split('_')[1]
+
+            layout_block = QVBoxLayout()
+            layout_block.addSpacing(20)
+            header_widget = QLabel(header)
+            header_widget.setFont(self.header_font)
+            layout_block.addWidget(header_widget)
+
+            if box_type == "cb":
+                for option in options:
+                    option_widget = QCheckBox(option)
+                    self.tag_widgets[option] = option_widget
+                    layout_block.addWidget(option_widget)
+
+            elif box_type == "rb":
+                self.rb_group = QButtonGroup()
+                for option in options:
+                    option_widget = QRadioButton(option)
+                    self.rb_group.addButton(option_widget)
+                    self.tag_widgets[option] = option_widget
+                    layout_block.addWidget(option_widget)
+
+            else:
+                return
+
+            if (
+                    header == "GAME PHASE" or
+                    header == "MISSED RESPONSE" or
+                    header == "DIAGNOSIS"):
+                layout_left.addLayout(layout_block)
+
+            if (
+                    header == "TACTICAL THEME" or
+                    header == "POSITIONAL DISADVANTAGE"):
+                layout_right.addLayout(layout_block)
+
+            layout.addLayout(layout_left)
+            layout.addSpacing(20)
+            layout.addLayout(layout_right)
+
         return layout
 
-    def create_buttons(self, buttons):
+    def create_button_layout(self):
+        button_names = ["Load", "URL", "PGN", "FEN", "Save"]
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.setContentsMargins(0, 15, 0, 0)
-        tooltip_dict = {
+        button_tootips = {
             "Load": "Load game from Lichess (L)",
             "URL": "Copy Lichess URL (U)",
             "PGN": "Copy PGN of current game (P)",
             "FEN": "Copy FEN of current position (N)",
             "Save": "Save tags into database (S)"
         }
-        for button in buttons:
-            bt = QPushButton(button)
-            bt.setToolTip(tooltip_dict[button])
-            self.bt_dict[button] = bt
-            if button == "Load" or button == "Save":
-                bt.setFixedWidth(100)
+        for button_name in button_names:
+            button_widget = QPushButton(button_name)
+            button_widget.setToolTip(button_tootips[button_name])
+            self.button_widgets[button_name] = button_widget
+            if button_name == "Load" or button_name == "Save":
+                button_widget.setFixedWidth(100)
             else:
-                bt.setFixedWidth(70)
-            layout.addWidget(bt)
+                button_widget.setFixedWidth(70)
+            layout.addWidget(button_widget)
         return layout
 
-    def create_board(self):
+    def create_board_layout(self):
         layout = QVBoxLayout()
         layout.addWidget(self.player_top)
         layout.addWidget(self.image_board)
         layout.addWidget(self.player_bottom)
         return layout
 
-    def create_played_move_info(self):
+    def create_evaluation_layout(self):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.setContentsMargins(20, 30, 0, 15)
@@ -437,29 +445,29 @@ class Window(QWidget):
 
     def read_tags(self):
         tag_list = []
-        for key, value in self.tag_dict.items():
+        for key, value in self.tag_widgets.items():
             if value.isChecked():
                 tag_list.append(key)
         return tag_list
 
-    def save_tags(self, tag_list, hmove_nr):
-        self.game.tag_move_list[hmove_nr - 1] = tag_list
+    def save_tags(self, tag_list, move_nr):
+        self.game.tag_move_list[move_nr - 1] = tag_list
 
-    def load_tags(self, hmove_nr):
-        tag_list = self.game.tag_move_list[hmove_nr - 1]
+    def load_tags(self, move_nr):
+        tag_list = self.game.tag_move_list[move_nr - 1]
         for tag in tag_list:
-            self.tag_dict[tag].setChecked(True)
+            self.tag_widgets[tag].setChecked(True)
 
     def reset_tags(self):
         self.rb_group.setExclusive(False)
-        for value in self.tag_dict.values():
+        for value in self.tag_widgets.values():
             value.setChecked(False)
         self.rb_group.setExclusive(True)
 
     def save_analysis(self):
 
         tag_list = self.read_tags()
-        self.save_tags(tag_list, self.hmove_nr)
+        self.save_tags(tag_list, self.current_move_num)
 
         db_file_name = "chess_moves.db"
         conn = sqlite3.connect(db_file_name)
@@ -473,10 +481,10 @@ class Window(QWidget):
                                white=self.game.white,
                                black=self.game.black)
 
-        for imove in range(self.hmove_nr):
+        for imove in range(self.current_move_num):
             move_id = db.save_move(cursor=cursor,
                                    game_id=game_id,
-                                   hmove_nr=imove + 1,
+                                   move_nr=imove + 1,
                                    move_cost=self.game.cost_list[imove])
 
             tag_list = self.game.tag_move_list[imove]
@@ -526,9 +534,9 @@ class Game:
         # extract moves
         board = self.parsed_game.board()
 
-        self.pushable_moves = list(self.parsed_game.mainline_moves())
+        self.move_obj_list = list(self.parsed_game.mainline_moves())
         self.moves = []
-        for pushable_move in self.pushable_moves:
+        for pushable_move in self.move_obj_list:
             self.moves.append(board.san(pushable_move))
             board.push(pushable_move)
 
@@ -542,7 +550,6 @@ class Game:
         self.eval_list = []
         for i, part in enumerate(pgn_parts):
             if part == keyword:
-                # self.eval_list.append(pgn_parts[i + 1][:-1])
                 try:
                     self.eval_list.append(float(pgn_parts[i + 1][:-1]))
                 except ValueError:
@@ -556,7 +563,7 @@ class Game:
 
         self.cost_list = []
 
-        for ieval, evaluation in enumerate(self.eval_list):
+        for ieval, _ in enumerate(self.eval_list):
 
             if ieval == 0:
                 self.cost_list.append(self.eval_list[ieval])
