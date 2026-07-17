@@ -1,5 +1,4 @@
 def initialize_database(cursor):
-
     cursor.executescript("""
         CREATE TABLE IF NOT EXISTS games (
             game_id INTEGER PRIMARY KEY,
@@ -31,7 +30,6 @@ def initialize_database(cursor):
 
 
 def save_game(cursor, lichess_id, date, white, black):
-
     cursor.execute("""        
         INSERT INTO games
         (lichess_id, date, white, black)
@@ -52,7 +50,6 @@ def save_game(cursor, lichess_id, date, white, black):
 
 
 def save_move(cursor, game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
-
     cursor.execute("""
         INSERT INTO moves
         (game_id, hmove_nr, move_cost)
@@ -75,7 +72,6 @@ def save_move(cursor, game_id, hmove_nr, move_cost, db_name="chess_moves.db"):
 
 
 def save_tag(cursor, tag, db_name="chess_moves.db"):
-
     cursor.execute("""
         INSERT OR IGNORE INTO tags
         (tag)
@@ -91,7 +87,6 @@ def save_tag(cursor, tag, db_name="chess_moves.db"):
 
 
 def save_move_tag(cursor, move_id, tag_id, db_name="chess_moves.db"):
-
     cursor.execute("""
         INSERT INTO moves_tags
         (move_id, tag_id)

@@ -1,86 +1,53 @@
---------------
-UI
---------------
 
-[done] add git and upload to github
-
+------------------------------------
 CHESS ANNOTATOR
-[] Configure the UI
-    [] show game headers
-        [] show a link to the game url
-        [done] show player names correctly
-    [done] allow flip board
-    [done] show last move played
-    [done] add next/prev move buttons
-    [] add tags (categorical droplist or checkbox) -- I prefer checkbox now
-    [] add "best alternatives" as a text box to be filled by the operator
-[] Save data inot the database
-    [] save
 
+[] rename the variables and follow a convention
+
+[done] add "save analysis" button
+[] show a message box after button clicks
+[donw] show the shortkey while hovering over a key
+
+[] warn the user when the loaded game exists in the db
+[] load the tags when the game already exists in the databse
+[] when the game already existed, warn the user about the impending overwrite proceeding
+
+
+------------------------------------
 CHESS ANALYZER
-[] Create a summary of the tags
-    [] pychart of the mistake parental categories
-    [] evolution of the pychart as a line graph
 
+[] create a summary of the tags
+[] pychart of the mistake parental categories
+[] evolution of the pychart as a line graph
+
+------------------------------------
 CHESS TRAINER
+
 [] show top costy mistakes and ask for the correct move.
 [] save the training session and the players performance in the database
 
 
---------------
-DATABASE
---------------
-
-CREATE TABLE players (
-    player_id INTEGER,
-    name TEXT NOT NULL,
-    PRIMARY KEY (player_id)
-);
 
 
-CREATE TABLE ratings (
-    rating_id INTEGER,
-    date TEXT,
-    player_id INTEGER,
-    rating_system TEXT,
-    rating INTEGER,
-    PRIMARY KEY (rating_id),
-    FOREIGN KEY (player_id) REFERENCES players(player_id)
-);
 
-CREATE TABLE games (
-    game_id INTEGER,
-    opening TEXT,
-    player_id INTEGER,
-    side TEXT,
-    date TEXT,
-    PRIMARY KEY (game_id),
-    FOREIGN KEY (player_id) REFERENCES players(player_id)
-);
+[Event "rated classical game"]
+[Site "https://lichess.org/HbXe1F1j"]
+[Date "2026.07.15"]
+[Round "-"]
+[White "Monocarp"]
+[Black "GrayArmy"]
+[Result "1-0"]
+[GameId "HbXe1F1j"]
+[UTCDate "2026.07.15"]
+[UTCTime "10:01:02"]
+[WhiteElo "1823"]
+[BlackElo "1732"]
+[WhiteRatingDiff "+14"]
+[BlackRatingDiff "-10"]
+[Variant "Standard"]
+[TimeControl "1800+30"]
+[ECO "A45"]
+[Opening "Indian Defense: Gibbins-Weidenhagen Gambit"]
+[Termination "Normal"]
 
-
-CREATE TABLE tags (
-    tag_id INTEGER,
-    tag TEXT,
-    PRIMARY KEY (tag_id)
-);
-
-CREATE TABLE moves (
-    move_id INTEGER,
-    move_number INTEGER,
-    fen_before TEXT,
-    played_move TEXT,
-    cp_loss REAL,
-    tag_id INTEGER,
-    comment TEXT,
-    game_id INTEGER,
-    PRIMARY KEY (move_id),
-    FOREIGN KEY (game_id) REFERENCES games(game_id)
-);
-
-CREATE TABLE moves_tags (
-	move_id INTEGER,
-	tag_id INTEGER,
-	FOREIGN KEY (move_id) REFERENCES moves(move_id),
-	FOREIGN KEY (tag_id) REFERENCES tags(tag_id)
-);
+1. d4 { [%eval 0.15] [%clk 0:30:00] } 1... Nf6 { [%eval 0.15] [%clk 0:30:00] } 2. g4 { [%eval -0.7] [%clk 0:30:24] } 2... h6 { [%eval -0.15] [%clk 0:29:43] } 3. c4 { [%eval -0.71] [%clk 0:28:28] } 3... e6 { [%eval -0.27] [%clk 0:29:16] } 4. g5 { [%eval -0.37] [%clk 0:28:52] } 4... hxg5 { [%eval -0.37] [%clk 0:29:34] } 5. Bxg5 { [%eval -0.36] [%clk 0:29:19] } 5... d5 { [%eval -0.42] [%clk 0:25:40] } 6. e4 { [%eval -1.16] [%clk 0:26:48] } 6... dxe4 { [%eval -1.18] [%clk 0:24:42] } 7. Bg2 { [%eval -1.48] [%clk 0:26:45] } 7... c6 { [%eval -0.5] [%clk 0:24:21] } 8. Nc3 { [%eval -0.48] [%clk 0:26:20] } 8... Bb4 { [%eval 0.04] [%clk 0:23:12] } 9. Qb3 { [%eval -0.54] [%clk 0:23:18] } 9... Qd6 { [%eval 1.12] [%clk 0:19:35] } 10. Bxf6 { [%eval -1.06] [%clk 0:19:51] } 10... gxf6 { [%eval -1.08] [%clk 0:19:38] } 11. Ne2 { [%eval -0.92] [%clk 0:19:43] } 11... Bxc3+ { [%eval -0.25] [%clk 0:15:33] } 12. Qxc3 { [%eval -0.19] [%clk 0:18:17] } 12... f5 { [%eval -0.35] [%clk 0:12:56] } 13. d5 { [%eval -1.03] [%clk 0:16:26] } 13... Rxh2 { [%eval -0.19] [%clk 0:13:14] } 14. O-O-O { [%eval -0.2] [%clk 0:16:52] } 14... Rxh1 { [%eval -0.15] [%clk 0:10:13] } 15. Rxh1 { [%eval -0.09] [%clk 0:17:13] } 15... Nd7 { [%eval -0.09] [%clk 0:09:18] } 16. Rh8+ { [%eval -0.12] [%clk 0:16:26] } 16... Nf8 { [%eval 0.0] [%clk 0:08:50] } 17. c5 { [%eval 0.0] [%clk 0:16:14] } 17... Qxd5 { [%eval 0.0] [%clk 0:06:15] } 18. Nf4 { [%eval 0.0] [%clk 0:13:31] } 18... Qxa2 { [%eval 0.0] [%clk 0:05:29] } 19. Nh5 { [%eval 0.0] [%clk 0:07:39] } 19... Qa1+ { [%eval 1.75] [%clk 0:03:01] } 20. Kd2 { [%eval 0.79] [%clk 0:06:43] } 20... Qg1 { [%eval 5.48] [%clk 0:02:36] } 21. Qd4 { [%eval 5.33] [%clk 0:04:50] } 21... Bd7 { [%eval #4] [%clk 0:01:31] } 22. Qd6 { [%eval -5.59] [%clk 0:01:56] } 22... O-O-O { [%eval -5.34] [%clk 0:01:49] } 23. Rxf8 { [%eval -6.03] [%clk 0:01:54] } 23... Qxf2+ { [%eval -6.08] [%clk 0:01:16] } 24. Kc3 { [%eval -5.6] [%clk 0:02:20] } 24... Rxf8 { [%eval 0.0] [%clk 0:01:11] } 25. Qxf8+ { [%eval 0.0] [%clk 0:02:20] } 25... Kc7 { [%eval 0.0] [%clk 0:01:40] } 26. Qd6+ { [%eval 0.0] [%clk 0:02:42] } 26... Kc8 { [%eval 0.0] [%clk 0:01:57] } 27. Nf6 { [%eval 0.0] [%clk 0:01:46] } 27... Qe3+ { [%eval 0.0] [%clk 0:01:24] } 28. Kc2 { [%eval -0.18] [%clk 0:01:21] } 28... Qd3+ { [%eval -0.14] [%clk 0:01:51] } 29. Qxd3 { [%eval -0.1] [%clk 0:01:37] } 29... exd3+ { [%eval -0.11] [%clk 0:02:19] } 30. Kxd3 { [%eval -0.18] [%clk 0:02:05] } 30... e5 { [%eval -0.2] [%clk 0:02:35] } 31. b4 { [%eval -0.64] [%clk 0:01:32] } 31... a6 { [%eval -0.21] [%clk 0:02:12] } 32. Kc4 { [%eval -0.23] [%clk 0:01:18] } 32... Be6+ { [%eval -0.24] [%clk 0:02:36] } 33. Kd3 { [%eval -0.28] [%clk 0:01:40] } 33... Kd8 { [%eval -0.29] [%clk 0:02:52] } 34. Bh3 { [%eval -0.3] [%clk 0:01:25] } 34... Ke7 { [%eval -0.1] [%clk 0:03:17] } 35. Nh5 { [%eval -4.57] [%clk 0:01:39] } 35... f4 { [%eval -4.25] [%clk 0:02:34] } 36. Bxe6 { [%eval -4.34] [%clk 0:01:53] } 36... Kxe6 { [%eval -4.09] [%clk 0:03:02] } 37. Ke4 { [%eval -6.79] [%clk 0:02:21] } 37... f6 { [%eval -0.09] [%clk 0:03:28] } 38. Ng7+ { [%eval -0.25] [%clk 0:02:42] } 38... Ke7 { [%eval -0.13] [%clk 0:03:46] } 39. Nf5+ { [%eval -0.13] [%clk 0:02:57] } 39... Ke6 { [%eval -0.15] [%clk 0:04:15] } 40. Ng7+ { [%eval -0.22] [%clk 0:02:36] } 40... Kf7 { [%eval 0.0] [%clk 0:04:37] } 41. Nf5 { [%eval 0.0] [%clk 0:03:00] } 41... Kg6 { [%eval 0.0] [%clk 0:04:44] } 42. Nd6 { [%eval 0.0] [%clk 0:03:14] } 42... Kg5 { [%eval 0.0] [%clk 0:05:01] } 43. Nxb7 { [%eval 0.0] [%clk 0:02:36] } 43... Kg4 { [%eval 0.0] [%clk 0:05:21] } 44. Nd6 { [%eval 0.0] [%clk 0:02:27] } 44... Kg3 { [%eval 0.0] [%clk 0:05:49] } 45. Nf5+ { [%eval -0.16] [%clk 0:02:34] } 45... Kg2 { [%eval -0.19] [%clk 0:06:12] } 46. Nh4+ { [%eval -0.2] [%clk 0:02:31] } 46... Kg3 { [%eval -0.21] [%clk 0:06:40] } 47. Nf5+ { [%eval -0.29] [%clk 0:02:57] } 47... Kg2 { [%eval -0.26] [%clk 0:06:46] } 48. Nh4+ { [%eval -0.31] [%clk 0:03:17] } 48... Kf2 { [%eval -0.38] [%clk 0:05:39] } 49. Kf5 { [%eval -6.15] [%clk 0:02:28] } 49... f3 { [%eval 6.49] [%clk 0:05:50] } 50. Ke4 { [%eval 7.33] [%clk 0:01:59] } 50... Ke2 { [%eval 9.64] [%clk 0:05:08] } 51. Nxf3 { [%eval 8.4] [%clk 0:02:06] } 51... f5+ { [%eval 8.79] [%clk 0:05:31] } 52. Kxf5 { [%eval 6.96] [%clk 0:02:17] } 52... Kxf3 { [%eval 32.29] [%clk 0:06:00] } 53. Kxe5 { [%eval 69.13] [%clk 0:02:45] } 53... Ke3 { [%eval 10.84] [%clk 0:06:29] } 54. Kd6 { [%eval 10.39] [%clk 0:03:12] } 54... Kd4 { [%eval 7.29] [%clk 0:06:48] } 55. Kxc6 { [%eval 38.7] [%clk 0:03:39] } 55... Kc4 { [%eval 73.89] [%clk 0:07:05] } 56. Kb6 { [%eval 10.2] [%clk 0:04:04] } 56... Kxb4 { [%eval 80.6] [%clk 0:06:21] } 57. c6 { [%eval 7.02] [%clk 0:04:31] } 1-0

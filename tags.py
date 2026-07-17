@@ -1,12 +1,12 @@
 tag_dict = {
 
-    "Game Phase_rb": [
+    "GAME PHASE_rb": [
         "Opening",
         "Middlegame",
         "Endgame"
     ],
 
-    "Missed Response_cb": [
+    "MISSED RESPONSE_cb": [
         "Check",
         "Capture",
         "Threat",
@@ -15,7 +15,7 @@ tag_dict = {
         "Escape"
     ],
 
-    "Tactical Theme_cb": [
+    "TACTICAL THEME_cb": [
         "Pin",
         "Fork",
         "X-Ray",
@@ -29,7 +29,7 @@ tag_dict = {
         "Overworked Defender"
     ],
 
-    "Positional Disadvantage_cb": [
+    "POSITIONAL DISADVANTAGE_cb": [
         "Spatial Control Loss",
         "Tempo/Initiative Loss",
         "Allowed Passed Pawn",
@@ -38,7 +38,7 @@ tag_dict = {
         "Pawn Structure Weakness"
     ],
 
-    "Diagnosis_cb": [
+    "DIAGNOSIS_cb": [
         "Fatigue",
         "Anxiety",
         "Oversight",
