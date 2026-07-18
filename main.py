@@ -47,31 +47,38 @@ class Window(QWidget):
         self.flip_flag = True
         self.current_move_num = 0
 
-        self.header_font = QFont()
-        self.header_font.setBold(True)
-        self.player_font = QFont()
-        self.player_font.setBold(True)
-        self.player_font.setPointSize(14)
-
+        # --------------------------------------------------------------------
+        # create widgets
+        
         self.tabs = QTabWidget()
         self.tabs.setTabBar(FixedWidthTabBar())
         self.tabs.tabBar().setDrawBase(False)
-
-        tab_tag = QWidget()
-        tab_report = QWidget()
-        tab_train = QWidget()
-
-        self.tag_widgets = {}
-        self.button_widgets = {}
+              
         self.player_top_lbl = QLabel()
-        self.player_top_lbl.setFont(self.player_font)
         self.player_bottom_lbl = QLabel()
-        self.player_bottom_lbl.setFont(self.player_font)
+        
         self.image_board = QLabel()
         self.pixmap = QPixmap()
-        self.move_notation = QLabel()
-        self.move_cost = QLabel()
-        self.eval = QLabel()
+        
+        self.move_notation_lbl = QLabel()
+        self.move_cost_lbl = QLabel()
+        self.eval_lbl = QLabel()
+        
+        self.button_widgets = {}
+        
+        self.tag_widgets = {}
+
+        # --------------------------------------------------------------------
+        # create styles
+        
+        self.tag_header_font = QFont()
+        self.tag_header_font.setBold(True)
+
+        self.player_font = QFont()
+        self.player_font.setBold(True)
+        self.player_font.setPointSize(14)
+        self.player_top_lbl.setFont(self.player_font)
+        self.player_bottom_lbl.setFont(self.player_font)
 
         self.frame = QFrame()
         self.frame.setFrameShape(QFrame.Shape.Box)
@@ -83,7 +90,7 @@ class Window(QWidget):
 
         board_layout = self.create_board_layout()
         button_layout = self.create_button_layout()
-        evaluation_layout = self.create_evaluation_layout()
+        eval_layout = self.create_eval_layout()
         tag_layout = self.create_tag_layout()
 
         # --------------------------------------------------------------------
@@ -98,7 +105,7 @@ class Window(QWidget):
         game_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
                                  Qt.AlignmentFlag.AlignHCenter)
         game_layout.addLayout(board_layout)
-        game_layout.addLayout(evaluation_layout)
+        game_layout.addLayout(eval_layout)
         game_layout.addLayout(button_layout)
 
         master_layout = QHBoxLayout()
@@ -106,6 +113,10 @@ class Window(QWidget):
         master_layout.addLayout(tag_layout, 3)
         master_layout.setContentsMargins(50, 30, 50, 30)
 
+        tab_tag = QWidget()
+        tab_report = QWidget()
+        tab_train = QWidget()
+        
         tab_tag.setLayout(master_layout)
 
         self.tabs.addTab(tab_tag, "Tag")
@@ -150,9 +161,9 @@ class Window(QWidget):
 
         self.player_top_lbl.setText("?")
         self.player_bottom_lbl.setText("?")
-        self.move_notation.setText("?")
-        self.move_cost.setText("?")
-        self.eval.setText("?")
+        self.move_notation_lbl.setText("?")
+        self.move_cost_lbl.setText("?")
+        self.eval_lbl.setText("?")
 
     def update_board(self):
         svgimage = chess.svg.board(board=self.game.board,
@@ -182,10 +193,10 @@ class Window(QWidget):
             else:
                 prefix = f"{self.current_move_num // 2}... "
 
-            self.move_notation.setText(
+            self.move_notation_lbl.setText(
                 f"{prefix}{self.game.moves[self.current_move_num - 1]}")
 
-            self.move_cost.setText(
+            self.move_cost_lbl.setText(
                 f"{self.game.cost_list[self.current_move_num - 1]}")
 
             self.set_move_color()
@@ -194,37 +205,37 @@ class Window(QWidget):
 
             if isinstance(current_eval, float):
                 if not (current_eval < 0):
-                    self.eval.setText(f"+{current_eval}")
+                    self.eval_lbl.setText(f"+{current_eval}")
                 else:
-                    self.eval.setText(f"{current_eval}")
+                    self.eval_lbl.setText(f"{current_eval}")
 
             if isinstance(current_eval, str):
-                self.eval.setText(current_eval)
+                self.eval_lbl.setText(current_eval)
 
         else:
-            self.move_notation.setText("-")
-            self.move_cost.setText("-")
-            self.eval.setText("-")
+            self.move_notation_lbl.setText("-")
+            self.move_cost_lbl.setText("-")
+            self.eval_lbl.setText("-")
 
     def set_move_color(self):
-        cost = self.move_cost.text()
+        cost = self.move_cost_lbl.text()
         if cost == "Unavoidable Checkmate" or cost == "Missed Checkmate":
-            self.move_cost.setStyleSheet("color: #EC7A5A")
-            self.move_notation.setStyleSheet("color: #EC7A5A")
+            self.move_cost_lbl.setStyleSheet("color: #EC7A5A")
+            self.move_notation_lbl.setStyleSheet("color: #EC7A5A")
         else:
             cost = float(cost)
             if .5 <= cost < 1:
-                self.move_cost.setStyleSheet("color: #4AA8CF")
-                self.move_notation.setStyleSheet("color: #4AA8CF")
+                self.move_cost_lbl.setStyleSheet("color: #4AA8CF")
+                self.move_notation_lbl.setStyleSheet("color: #4AA8CF")
             elif 1 <= cost < 3:
-                self.move_cost.setStyleSheet("color: #E0B953")
-                self.move_notation.setStyleSheet("color: #E0B953")
+                self.move_cost_lbl.setStyleSheet("color: #E0B953")
+                self.move_notation_lbl.setStyleSheet("color: #E0B953")
             elif cost >= 3:
-                self.move_cost.setStyleSheet("color: #EC7A5A")
-                self.move_notation.setStyleSheet("color: #EC7A5A")
+                self.move_cost_lbl.setStyleSheet("color: #EC7A5A")
+                self.move_notation_lbl.setStyleSheet("color: #EC7A5A")
             else:
-                self.move_cost.setStyleSheet("color: #D3D3D3")
-                self.move_notation.setStyleSheet("color: #D3D3D3")
+                self.move_cost_lbl.setStyleSheet("color: #D3D3D3")
+                self.move_notation_lbl.setStyleSheet("color: #D3D3D3")
 
     def set_board_orientation(self):
         if self.flip_flag:
@@ -265,9 +276,9 @@ class Window(QWidget):
             self.load_tags(move_nr=self.current_move_num)
 
             if self.current_move_num == 0:
-                self.move_notation.setText("-")
-                self.move_cost.setText("-")
-                self.eval.setText("-")
+                self.move_notation_lbl.setText("-")
+                self.move_cost_lbl.setText("-")
+                self.eval_lbl.setText("-")
 
             self.game.board.pop()
             self.update_board()
@@ -335,26 +346,26 @@ class Window(QWidget):
             layout.addWidget(button_widget)
         return layout
 
-    def create_evaluation_layout(self):
+    def create_eval_layout(self):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.setContentsMargins(20, 30, 0, 15)
         layout_title = QVBoxLayout()
         layout_value = QVBoxLayout()
         move_label = QLabel("Move:")
-        move_label.setFont(self.header_font)
+        move_label.setFont(self.tag_header_font)
         cost_label = QLabel("Cost:")
-        cost_label.setFont(self.header_font)
+        cost_label.setFont(self.tag_header_font)
         eval_label = QLabel("Evaluation:")
-        eval_label.setFont(self.header_font)
+        eval_label.setFont(self.tag_header_font)
 
         layout_title.addWidget(move_label)
         layout_title.addWidget(cost_label)
         layout_title.addWidget(eval_label)
 
-        layout_value.addWidget(self.move_notation)
-        layout_value.addWidget(self.move_cost)
-        layout_value.addWidget(self.eval)
+        layout_value.addWidget(self.move_notation_lbl)
+        layout_value.addWidget(self.move_cost_lbl)
+        layout_value.addWidget(self.eval_lbl)
 
         layout.addLayout(layout_title)
         layout.addSpacing(10)
@@ -383,7 +394,7 @@ class Window(QWidget):
             layout_block = QVBoxLayout()
             layout_block.addSpacing(20)
             header_widget = QLabel(header)
-            header_widget.setFont(self.header_font)
+            header_widget.setFont(self.tag_header_font)
             layout_block.addWidget(header_widget)
 
             if box_type == "cb":
