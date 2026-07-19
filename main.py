@@ -1,3 +1,6 @@
+#todo: handle connectio error: requests.exceptions.ConnectionError
+# check if game exists in database
+
 import io
 import chess
 import sqlite3
@@ -7,8 +10,8 @@ import chess.pgn
 import chess.svg
 import database as db
 from tags import tag_source
-from PyQt6.QtCore import Qt
-from PyQt6.QtGui import (QPixmap, QFont)
+from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
+from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (QApplication,
                              QLabel,
                              QWidget,
@@ -20,6 +23,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QCheckBox,
                              QTabWidget,
                              QTabBar,
+                             QGraphicsOpacityEffect,
                              QFrame)
 
 
@@ -32,7 +36,8 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves")
-        self.setFixedSize(1000, 800)
+        # self.setFixedSize(1000, 800)
+        self.resize(1000, 800)
         self.setStyleSheet("""
         QWidget {
         color: #D3D3D3;
@@ -40,37 +45,44 @@ class Window(QWidget):
         """)
 
         # --------------------------------------------------------------------
-        # attributes
+        #
 
         self.game = None
+        self.game_id = None
         self.move_obj = None
         self.flip_flag = True
         self.current_move_num = 0
 
         # --------------------------------------------------------------------
         # create widgets
-        
-        self.tabs = QTabWidget()
-        self.tabs.setTabBar(FixedWidthTabBar())
-        self.tabs.tabBar().setDrawBase(False)
-              
+
+        self.tab_widget = QTabWidget()
+
+        self.tab_tag = QWidget()
+        self.tab_report = QWidget()
+        self.tab_train = QWidget()
+
         self.player_top_lbl = QLabel()
         self.player_bottom_lbl = QLabel()
-        
-        self.image_board = QLabel()
+
+        self.image_board_lbl = QLabel()
         self.pixmap = QPixmap()
-        
+
         self.move_notation_lbl = QLabel()
         self.move_cost_lbl = QLabel()
         self.eval_lbl = QLabel()
-        
+
         self.button_widgets = {}
-        
+
+        self.rb_group = QButtonGroup()
         self.tag_widgets = {}
 
         # --------------------------------------------------------------------
         # create styles
-        
+
+        self.tab_widget.setTabBar(FixedWidthTabBar())
+        self.tab_widget.tabBar().setDrawBase(False)
+
         self.tag_header_font = QFont()
         self.tag_header_font.setBold(True)
 
@@ -99,7 +111,7 @@ class Window(QWidget):
         self.setLayout(QVBoxLayout())
         self.layout().setContentsMargins(0, 0, 0, 0)
 
-        self.layout().addWidget(self.tabs)
+        self.layout().addWidget(self.tab_widget)
 
         game_layout = QVBoxLayout()
         game_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
@@ -108,20 +120,16 @@ class Window(QWidget):
         game_layout.addLayout(eval_layout)
         game_layout.addLayout(button_layout)
 
-        master_layout = QHBoxLayout()
-        master_layout.addLayout(game_layout, 4)
-        master_layout.addLayout(tag_layout, 3)
-        master_layout.setContentsMargins(50, 30, 50, 30)
+        tag_tab_master_layout = QHBoxLayout()
+        tag_tab_master_layout.addLayout(game_layout, 4)
+        tag_tab_master_layout.addLayout(tag_layout, 3)
+        tag_tab_master_layout.setContentsMargins(50, 30, 50, 30)
 
-        tab_tag = QWidget()
-        tab_report = QWidget()
-        tab_train = QWidget()
-        
-        tab_tag.setLayout(master_layout)
+        self.tab_tag.setLayout(tag_tab_master_layout)
 
-        self.tabs.addTab(tab_tag, "Tag")
-        self.tabs.addTab(tab_report, "Report")
-        self.tabs.addTab(tab_train, "Train")
+        self.tab_widget.addTab(self.tab_tag, "Tag")
+        self.tab_widget.addTab(self.tab_report, "Report")
+        self.tab_widget.addTab(self.tab_train, "Train")
 
         # --------------------------------------------------------------------
 
@@ -133,13 +141,19 @@ class Window(QWidget):
         self.button_widgets["Load"].clicked.connect(self.load_game)
 
         self.button_widgets["URL"].clicked.connect(
-            lambda: self.copy_text(self.game.url))
+            lambda: self.copy_text(self.game.url,
+                                   "Game URL copied to clipboard"))
         self.button_widgets["PGN"].clicked.connect(
-            lambda: self.copy_text(self.game.pgn))
+            lambda: self.copy_text(self.game.pgn,
+                                   "Game PGN copied to clipboard"))
         self.button_widgets["FEN"].clicked.connect(
-            lambda: self.copy_text(self.game.board.fen()))
+            lambda: self.copy_text(self.game.board.fen(),
+                                   "Position copied to clipboard"))
 
         self.button_widgets["Save"].clicked.connect(self.save_analysis)
+
+    # ///////////////////////////////////////////////////////////////////////
+    # BOARD BEHAVIOR AND VISUALS
 
     def initialize_board(self):
         svgimage = chess.svg.board(board=chess.Board(),
@@ -157,7 +171,7 @@ class Window(QWidget):
 
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
-        self.image_board.setPixmap(self.pixmap)
+        self.image_board_lbl.setPixmap(self.pixmap)
 
         self.player_top_lbl.setText("?")
         self.player_bottom_lbl.setText("?")
@@ -166,22 +180,6 @@ class Window(QWidget):
         self.eval_lbl.setText("?")
 
     def update_board(self):
-        svgimage = chess.svg.board(board=self.game.board,
-                                   orientation=self.flip_flag,
-                                   lastmove=self.move_obj,
-                                   colors={
-                                       "square light": "#B0AA98",
-                                       "square dark": "#827A68",
-                                       "square light lastmove": "#a1ad68",
-                                       "square dark lastmove": "#a1ad68"
-                                   },
-                                   coordinates=True,
-                                   size=480
-                                   )
-
-        pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
-        self.pixmap.loadFromData(pngimage)
-        self.image_board.setPixmap(self.pixmap)
 
         self.set_board_orientation()
 
@@ -199,7 +197,7 @@ class Window(QWidget):
             self.move_cost_lbl.setText(
                 f"{self.game.cost_list[self.current_move_num - 1]}")
 
-            self.set_move_color()
+            self.set_move_cost_color()
 
             current_eval = self.game.eval_list[self.current_move_num - 1]
 
@@ -217,7 +215,7 @@ class Window(QWidget):
             self.move_cost_lbl.setText("-")
             self.eval_lbl.setText("-")
 
-    def set_move_color(self):
+    def set_move_cost_color(self):
         cost = self.move_cost_lbl.text()
         if cost == "Unavoidable Checkmate" or cost == "Missed Checkmate":
             self.move_cost_lbl.setStyleSheet("color: #EC7A5A")
@@ -283,43 +281,54 @@ class Window(QWidget):
             self.game.board.pop()
             self.update_board()
 
-    def keyPressEvent(self, event):
+    def show_message(self, text):
 
-        if event.key() == Qt.Key.Key_Escape:
-            self.close()
+        overlay = QWidget(self)
+        overlay.setGeometry(self.rect())
 
-        elif event.key() == Qt.Key.Key_Right:
-            self.next_move()
+        layout = QVBoxLayout(overlay)
+        layout.setAlignment(Qt.AlignmentFlag.AlignRight |
+                            Qt.AlignmentFlag.AlignBottom)
+        layout.setContentsMargins(0, 0, 20, 20)
 
-        elif event.key() == Qt.Key.Key_Left:
-            self.previous_move()
+        label = QLabel(text)
+        label.setStyleSheet("""
+            QLabel {
+                background-color: rgb(40, 40, 40);
+                padding: 5px;
+                border-radius: 7px;
+            }
+        """)
 
-        elif event.key() == Qt.Key.Key_F:
-            self.flip_flag = not self.flip_flag
-            self.update_board()
+        layout.addWidget(label)
+        overlay.show()
 
-        elif event.key() == Qt.Key.Key_L:
-            self.load_game()
+        # Add opacity effect
+        effect = QGraphicsOpacityEffect(label)
+        effect.setOpacity(1)
+        label.setGraphicsEffect(effect)
 
-        elif event.key() == Qt.Key.Key_U:
-            self.copy_text(self.game.url)
+        # Wait, then fade out
+        def fade_out():
+            animation = QPropertyAnimation(effect, b"opacity")
+            animation.setDuration(500)  # fade duration in ms
+            animation.setStartValue(effect.opacity())
+            animation.setEndValue(0)
+            animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            animation.finished.connect(overlay.deleteLater)
+            animation.start()
 
-        elif event.key() == Qt.Key.Key_P:
-            self.copy_text(self.game.pgn)
+            overlay.animation = animation
 
-        elif event.key() == Qt.Key.Key_N:
-            self.copy_text(self.game.board.fen())
+        QTimer.singleShot(1500, fade_out)
 
-        elif event.key() == Qt.Key.Key_S:
-            self.save_analysis()
-
-    # ///////////////////////////////////////////////////////////////////////
-    # CREATE LAYOUTS
+        # ///////////////////////////////////////////////////////////////////////
+        # CREATE LAYOUTS
 
     def create_board_layout(self):
         layout = QVBoxLayout()
         layout.addWidget(self.player_top_lbl)
-        layout.addWidget(self.image_board)
+        layout.addWidget(self.image_board_lbl)
         layout.addWidget(self.player_bottom_lbl)
         return layout
 
@@ -329,11 +338,11 @@ class Window(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
         layout.setContentsMargins(0, 15, 0, 0)
         button_tootips = {
-            "Load": "Load game from Lichess (L)",
-            "URL": "Copy Lichess URL (U)",
-            "PGN": "Copy PGN of current game (P)",
-            "FEN": "Copy FEN of current position (N)",
-            "Save": "Save tags into database (S)"
+            "Load": "Load game (L)",
+            "URL": "Copy game URL (U)",
+            "PGN": "Copy game PGN (P)",
+            "FEN": "Copy position FEN (N)",
+            "Save": "Save analysis (S)"
         }
         for button_name in button_names:
             button_widget = QPushButton(button_name)
@@ -404,7 +413,6 @@ class Window(QWidget):
                     layout_block.addWidget(option_widget)
 
             elif box_type == "rb":
-                self.rb_group = QButtonGroup()
                 for option in options:
                     option_widget = QRadioButton(option)
                     self.rb_group.addButton(option_widget)
@@ -425,17 +433,38 @@ class Window(QWidget):
                     header == "POSITIONAL DISADVANTAGE"):
                 layout_right.addLayout(layout_block)
 
-            layout.addLayout(layout_left)
-            layout.addSpacing(20)
-            layout.addLayout(layout_right)
+        layout.addLayout(layout_left)
+        layout.addSpacing(20)
+        layout.addLayout(layout_right)
 
         return layout
 
     # ///////////////////////////////////////////////////////////////////////
-    #
+    # tags operations
 
-    def copy_text(self, text):
-        QApplication.clipboard().setText(text)
+    def read_tags(self):
+        tag_list = []
+        for key, value in self.tag_widgets.items():
+            if value.isChecked():
+                tag_list.append(key)
+        return tag_list
+
+    def save_tags(self, tag_list, move_nr):
+        self.game.tag_move_list[move_nr - 1] = tag_list
+
+    def load_tags(self, move_nr):
+        tag_list = self.game.tag_move_list[move_nr - 1]
+        for tag in tag_list:
+            self.tag_widgets[tag].setChecked(True)
+
+    def reset_tags(self):
+        self.rb_group.setExclusive(False)
+        for value in self.tag_widgets.values():
+            value.setChecked(False)
+        self.rb_group.setExclusive(True)
+
+    # ///////////////////////////////////////////////////////////////////////
+    # analysis session operations
 
     def load_game(self):
         # game_url = QApplication.clipboard().text()
@@ -460,26 +489,7 @@ class Window(QWidget):
 
         self.update_board()
 
-    def read_tags(self):
-        tag_list = []
-        for key, value in self.tag_widgets.items():
-            if value.isChecked():
-                tag_list.append(key)
-        return tag_list
-
-    def save_tags(self, tag_list, move_nr):
-        self.game.tag_move_list[move_nr - 1] = tag_list
-
-    def load_tags(self, move_nr):
-        tag_list = self.game.tag_move_list[move_nr - 1]
-        for tag in tag_list:
-            self.tag_widgets[tag].setChecked(True)
-
-    def reset_tags(self):
-        self.rb_group.setExclusive(False)
-        for value in self.tag_widgets.values():
-            value.setChecked(False)
-        self.rb_group.setExclusive(True)
+        self.show_message("Game loaded")
 
     def save_analysis(self):
 
@@ -523,6 +533,52 @@ class Window(QWidget):
 
         finally:
             conn.close()
+
+        self.show_message("Analysis saved")
+
+    # ///////////////////////////////////////////////////////////////////////
+    # shortkeys
+
+    def keyPressEvent(self, event):
+
+        if event.key() == Qt.Key.Key_Escape:
+            self.close()
+
+        elif event.key() == Qt.Key.Key_Right:
+            self.next_move()
+
+        elif event.key() == Qt.Key.Key_Left:
+            self.previous_move()
+
+        elif event.key() == Qt.Key.Key_F:
+            self.flip_flag = not self.flip_flag
+            self.update_board()
+
+        elif event.key() == Qt.Key.Key_L:
+            self.load_game()
+
+        elif event.key() == Qt.Key.Key_U:
+            self.copy_text(self.game.url,
+                           "Game URL copied to clipboard")
+
+        elif event.key() == Qt.Key.Key_P:
+            self.copy_text(self.game.pgn,
+                           "Game PGN copied to clipboard")
+
+        elif event.key() == Qt.Key.Key_N:
+            self.copy_text(self.game.board.fen(),
+                           "Position copied to clipboard")
+
+
+        elif event.key() == Qt.Key.Key_S:
+            self.save_analysis()
+
+    # ///////////////////////////////////////////////////////////////////////
+    # other functions
+
+    def copy_text(self, text, message):
+        QApplication.clipboard().setText(text)
+        self.show_message(message)
 
 
 class FixedWidthTabBar(QTabBar):
