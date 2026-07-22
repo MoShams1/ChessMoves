@@ -1,7 +1,11 @@
-#todo: handle connectio error: requests.exceptions.ConnectionError
-# check if game exists in database
+# todo: [] check if game exists in database and show message
+# todo: if game already exists
+#   [] load tags
+#   [] find game_id for later save address
+# todo: [] handle connectio error: requests.exceptions.ConnectionError
 
 import io
+import os
 import chess
 import sqlite3
 import cairosvg
@@ -48,7 +52,7 @@ class Window(QWidget):
         #
 
         self.game = None
-        self.game_id = None
+        self.lichess_id = None
         self.move_obj = None
         self.flip_flag = True
         self.current_move_num = 0
@@ -467,19 +471,19 @@ class Window(QWidget):
     # analysis session operations
 
     def load_game(self):
-        # game_url = QApplication.clipboard().text()
-        # game_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
-        game_url = "https://lichess.org/HbXe1F1j/black"
-        if "study" in game_url:
+        # lichess_url = QApplication.clipboard().text()
+        # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
+        lichess_url = "https://lichess.org/HbXe1F1j/black"
+        if "study" in lichess_url:
             my_token = "lip_XB7WRyKqvpEnfFW9iHox"
-            self.game_id = game_url.split("study/")[1]
+            self.lichess_id = lichess_url.split("study/")[1]
             req_game = requests.get(
-                f"https://lichess.org/api/study/{self.game_id}.pgn",
+                f"https://lichess.org/api/study/{self.lichess_id}.pgn",
                 headers={"Authorization": f"Bearer {my_token}"})
         else:
-            self.game_id = game_url.split(".org/")[1].split("/")[0]
+            self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
             req_game = requests.get(
-                f"https://lichess.org/game/export/{self.game_id}")
+                f"https://lichess.org/game/export/{self.lichess_id}")
 
         self.game = Game(req_game)
 
@@ -488,8 +492,26 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
 
         self.update_board()
-
+        
         self.show_message("Game loaded")
+
+        db_file_name = "chess_moves.db"
+        if os.path.exists(db_file_name):
+            conn = sqlite3.connect(db_file_name)
+            cursor = conn.cursor()
+            db.check_if_game_exists(cursor, self.lichess_id)
+
+            try:
+                # all database operations
+                conn.commit()
+
+            except Exception:
+                conn.rollback()
+                raise
+
+            finally:
+                conn.close()
+
 
     def save_analysis(self):
 
@@ -503,7 +525,7 @@ class Window(QWidget):
         db.initialize_database(cursor)
 
         game_id = db.save_game(cursor=cursor,
-                               lichess_id=self.game_id,
+                               lichess_id=self.lichess_id,
                                date=self.game.date,
                                white=self.game.white,
                                black=self.game.black)

@@ -29,6 +29,14 @@ def initialize_database(cursor):
     """)
 
 
+def check_if_game_exists(cursor, lichess_id):
+    cursor.execute("""
+        SELECT EXISTS (SELECT 1 FROM games WHERE lichess_id = ?)
+        """, (lichess_id,))
+
+    exists_flag = bool(cursor.fetchone()[0])
+
+
 def save_game(cursor, lichess_id, date, white, black):
     cursor.execute("""        
         INSERT INTO games
