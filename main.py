@@ -1,4 +1,4 @@
-# todo: [] check if game exists in database and show message
+# todo: [done] check if game exists in database and show message
 # todo: if game already exists
 #   [] load tags
 #   [] find game_id for later save address
@@ -293,16 +293,28 @@ class Window(QWidget):
         layout = QVBoxLayout(overlay)
         layout.setAlignment(Qt.AlignmentFlag.AlignRight |
                             Qt.AlignmentFlag.AlignBottom)
-        layout.setContentsMargins(0, 0, 20, 20)
 
         label = QLabel(text)
-        label.setStyleSheet("""
-            QLabel {
-                background-color: rgb(40, 40, 40);
-                padding: 5px;
-                border-radius: 7px;
-            }
-        """)
+
+        if "WARNING" in text:
+            layout.setContentsMargins(0, 0, 20, 50)
+            label.setStyleSheet("""
+                QLabel {
+                    color: #E0B953;
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
+        else:
+            layout.setContentsMargins(0, 0, 20, 20)
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
 
         layout.addWidget(label)
         overlay.show()
@@ -492,14 +504,17 @@ class Window(QWidget):
             self.flip_flag = not self.flip_flag
 
         self.update_board()
-        
+
         self.show_message("Game loaded")
 
         db_file_name = "chess_moves.db"
         if os.path.exists(db_file_name):
             conn = sqlite3.connect(db_file_name)
             cursor = conn.cursor()
-            db.check_if_game_exists(cursor, self.lichess_id)
+            game_exists_flag = db.check_if_game_exists(cursor,
+                                                       self.lichess_id)
+            if game_exists_flag:
+                self.show_message("WARNING: Game already exists!")
 
             try:
                 # all database operations
@@ -511,7 +526,6 @@ class Window(QWidget):
 
             finally:
                 conn.close()
-
 
     def save_analysis(self):
 

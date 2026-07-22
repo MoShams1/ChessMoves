@@ -33,8 +33,8 @@ def check_if_game_exists(cursor, lichess_id):
     cursor.execute("""
         SELECT EXISTS (SELECT 1 FROM games WHERE lichess_id = ?)
         """, (lichess_id,))
-
-    exists_flag = bool(cursor.fetchone()[0])
+    flag = bool(cursor.fetchone()[0])
+    return flag
 
 
 def save_game(cursor, lichess_id, date, white, black):
@@ -57,7 +57,7 @@ def save_game(cursor, lichess_id, date, white, black):
     return game_id
 
 
-def save_move(cursor, game_id, move_nr, move_cost, db_name="chess_moves.db"):
+def save_move(cursor, game_id, move_nr, move_cost):
     cursor.execute("""
         INSERT INTO moves
         (game_id, hmove_nr, move_cost)
@@ -79,7 +79,7 @@ def save_move(cursor, game_id, move_nr, move_cost, db_name="chess_moves.db"):
     return move_id
 
 
-def save_tag(cursor, tag, db_name="chess_moves.db"):
+def save_tag(cursor, tag):
     cursor.execute("""
         INSERT OR IGNORE INTO tags
         (tag)
@@ -94,7 +94,7 @@ def save_tag(cursor, tag, db_name="chess_moves.db"):
     return tag_id
 
 
-def save_move_tag(cursor, move_id, tag_id, db_name="chess_moves.db"):
+def save_move_tag(cursor, move_id, tag_id):
     cursor.execute("""
         INSERT INTO moves_tags
         (move_id, tag_id)
