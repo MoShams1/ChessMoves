@@ -5,13 +5,16 @@ CHESS ANNOTATOR
 [] rename the variables and follow a convention [crucial for maintenance/extension]
 
 [done] add "save analysis" button
-[] show a message box after button clicks
-donepy] show the shortkey while hovering over a key
+[done] show a message box after button clicks
+[done] show the shortkey while hovering over a key
 
-[] warn the user when the loaded game exists in the db
-[] load the tags when the game already exists in the databse
+[done] warn the user when the loaded game exists in the db
+[done] load the tags when the game already exists in the databse
 [] when the game already existed, warn the user about the impending overwrite proceeding
 
+[] handle connectio error: requests.exceptions.ConnectionError
+
+[] cleanup the database file name variables
 
 ------------------------------------
 CHESS ANALYZER

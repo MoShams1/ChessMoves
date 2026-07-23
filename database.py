@@ -11,9 +11,9 @@ def initialize_database(cursor):
         CREATE TABLE IF NOT EXISTS moves (
             move_id INTEGER PRIMARY KEY,
             game_id INTEGER REFERENCES gameS(game_id),
-            hmove_nr INTEGER,
+            hmove_num INTEGER,
             move_cost REAL,     
-            UNIQUE(game_id, hmove_nr) 
+            UNIQUE(game_id, hmove_num) 
         );
         
         CREATE TABLE IF NOT EXISTS tags (
@@ -31,10 +31,14 @@ def initialize_database(cursor):
 
 def check_if_game_exists(cursor, lichess_id):
     cursor.execute("""
-        SELECT EXISTS (SELECT 1 FROM games WHERE lichess_id = ?)
+        SELECT game_id
+        FROM games
+        WHERE lichess_id = ?
         """, (lichess_id,))
-    flag = bool(cursor.fetchone()[0])
-    return flag
+
+    result = cursor.fetchone()
+
+    return result[0]
 
 
 def save_game(cursor, lichess_id, date, white, black):
@@ -60,7 +64,7 @@ def save_game(cursor, lichess_id, date, white, black):
 def save_move(cursor, game_id, move_nr, move_cost):
     cursor.execute("""
         INSERT INTO moves
-        (game_id, hmove_nr, move_cost)
+        (game_id, hmove_num, move_cost)
         VALUES(?, ?, ?)        
         """, (
         game_id,
@@ -69,7 +73,7 @@ def save_move(cursor, game_id, move_nr, move_cost):
     ))
     cursor.execute("""
         SELECT move_id FROM moves
-        WHERE game_id = ? AND hmove_nr = ?
+        WHERE game_id = ? AND hmove_num = ?
         """, (
         game_id,
         move_nr
@@ -110,3 +114,19 @@ def save_move_tag(cursor, move_id, tag_id):
     move_tag_id = cursor.fetchone()[0]
 
     return move_tag_id
+
+
+def read_tags_from_db(cursor, game_id, tag_move_list):
+    cursor.execute("""
+        SELECT moves.hmove_num, tags.tag
+        FROM moves
+        JOIN moves_tags ON moves.move_id = moves_tags.move_id
+        JOIN tags ON moves_tags.tag_id = tags.tag_id
+        WHERE moves.game_id = ?
+        ORDER BY moves.hmove_num
+        """, (game_id,))
+
+    for move_num, tag in cursor.fetchall():
+        tag_move_list[move_num - 1].append(tag)
+
+    return tag_move_list

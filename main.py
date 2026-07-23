@@ -1,9 +1,3 @@
-# todo: [done] check if game exists in database and show message
-# todo: if game already exists
-#   [] load tags
-#   [] find game_id for later save address
-# todo: [] handle connectio error: requests.exceptions.ConnectionError
-
 import io
 import os
 import chess
@@ -184,6 +178,22 @@ class Window(QWidget):
         self.eval_lbl.setText("?")
 
     def update_board(self):
+        svgimage = chess.svg.board(board=self.game.board,
+                                   orientation=self.flip_flag,
+                                   lastmove=self.move_obj,
+                                   colors={
+                                       "square light": "#B0AA98",
+                                       "square dark": "#827A68",
+                                       "square light lastmove": "#a1ad68",
+                                       "square dark lastmove": "#a1ad68"
+                                   },
+                                   coordinates=True,
+                                   size=480
+                                   )
+
+        pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
+        self.pixmap.loadFromData(pngimage)
+        self.image_board_lbl.setPixmap(self.pixmap)
 
         self.set_board_orientation()
 
@@ -255,11 +265,11 @@ class Window(QWidget):
                 (self.current_move_num < len(self.game.move_obj_list))
         ):
             if self.current_move_num > 0:
-                self.save_tags(tag_list=self.read_tags(),
-                               move_nr=self.current_move_num)
+                self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
+                                         move_nr=self.current_move_num)
             self.current_move_num += 1
-            self.reset_tags()
-            self.load_tags(move_nr=self.current_move_num)
+            self.reseat_tags_in_ui()
+            self.load_tags_to_ui(move_nr=self.current_move_num)
 
             self.move_obj = self.game.move_obj_list[self.current_move_num - 1]
             self.game.board.push(self.move_obj)
@@ -271,11 +281,11 @@ class Window(QWidget):
                 and
                 self.current_move_num > 0
         ):
-            self.save_tags(tag_list=self.read_tags(),
-                           move_nr=self.current_move_num)
+            self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
+                                     move_nr=self.current_move_num)
             self.current_move_num -= 1
-            self.reset_tags()
-            self.load_tags(move_nr=self.current_move_num)
+            self.reseat_tags_in_ui()
+            self.load_tags_to_ui(move_nr=self.current_move_num)
 
             if self.current_move_num == 0:
                 self.move_notation_lbl.setText("-")
@@ -297,7 +307,7 @@ class Window(QWidget):
         label = QLabel(text)
 
         if "WARNING" in text:
-            layout.setContentsMargins(0, 0, 20, 50)
+            layout.setContentsMargins(0, 0, 20, 45)
             label.setStyleSheet("""
                 QLabel {
                     color: #E0B953;
@@ -458,22 +468,22 @@ class Window(QWidget):
     # ///////////////////////////////////////////////////////////////////////
     # tags operations
 
-    def read_tags(self):
+    def read_tags_from_ui(self):
         tag_list = []
         for key, value in self.tag_widgets.items():
             if value.isChecked():
                 tag_list.append(key)
         return tag_list
 
-    def save_tags(self, tag_list, move_nr):
+    def save_tags_to_memory(self, tag_list, move_nr):
         self.game.tag_move_list[move_nr - 1] = tag_list
 
-    def load_tags(self, move_nr):
+    def load_tags_to_ui(self, move_nr):
         tag_list = self.game.tag_move_list[move_nr - 1]
         for tag in tag_list:
             self.tag_widgets[tag].setChecked(True)
 
-    def reset_tags(self):
+    def reseat_tags_in_ui(self):
         self.rb_group.setExclusive(False)
         for value in self.tag_widgets.values():
             value.setChecked(False)
@@ -511,26 +521,19 @@ class Window(QWidget):
         if os.path.exists(db_file_name):
             conn = sqlite3.connect(db_file_name)
             cursor = conn.cursor()
-            game_exists_flag = db.check_if_game_exists(cursor,
-                                                       self.lichess_id)
-            if game_exists_flag:
+            game_id = db.check_if_game_exists(cursor, self.lichess_id)
+            if game_id:
                 self.show_message("WARNING: Game already exists!")
-
-            try:
-                # all database operations
-                conn.commit()
-
-            except Exception:
-                conn.rollback()
-                raise
-
-            finally:
-                conn.close()
+                self.game.tag_move_list = db.read_tags_from_db(
+                    cursor,
+                    game_id,
+                    self.game.tag_move_list)
+            self.close_db_connection(conn)
 
     def save_analysis(self):
 
-        tag_list = self.read_tags()
-        self.save_tags(tag_list, self.current_move_num)
+        tag_list = self.read_tags_from_ui()
+        self.save_tags_to_memory(tag_list, self.current_move_num)
 
         db_file_name = "chess_moves.db"
         conn = sqlite3.connect(db_file_name)
@@ -559,18 +562,18 @@ class Window(QWidget):
                                  move_id=move_id,
                                  tag_id=tag_id)
 
-        try:
-            # all database operations
-            conn.commit()
-
-        except Exception:
-            conn.rollback()
-            raise
-
-        finally:
-            conn.close()
-
+        self.close_db_connection(conn)
         self.show_message("Analysis saved")
+
+    @staticmethod
+    def close_db_connection(connection):
+        try:
+            connection.commit()
+        except Exception:
+            connection.rollback()
+            raise
+        finally:
+            connection.close()
 
     # ///////////////////////////////////////////////////////////////////////
     # shortkeys
