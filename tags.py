@@ -33,7 +33,7 @@ tag_source = {
         "Spatial Control Loss",
         "Tempo/Initiative Loss",
         "Allowed Passed Pawn",
-        "Unfavorable Exchange",
+        "Poor Exchange Decision",
         "Compromised King Safety",
         "Pawn Structure Weakness"
     ],
