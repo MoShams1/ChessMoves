@@ -10,7 +10,7 @@ def initialize_database(cursor):
         
         CREATE TABLE IF NOT EXISTS moves (
             move_id INTEGER PRIMARY KEY,
-            game_id INTEGER REFERENCES gameS(game_id),
+            game_id INTEGER REFERENCES games(game_id) ON DELETE CASCADE,
             hmove_num INTEGER,
             move_cost REAL,     
             UNIQUE(game_id, hmove_num) 
@@ -23,7 +23,7 @@ def initialize_database(cursor):
         
         CREATE TABLE IF NOT EXISTS moves_tags (
             move_tag_id INTEGER PRIMARY KEY,
-            move_id INTEGER REFERENCES moves(move_id),
+            move_id INTEGER REFERENCES moves(move_id) ON DELETE CASCADE,
             tag_id INTEGER REFERENCES tags(tag_id)
         );
     """)
@@ -41,7 +41,12 @@ def check_if_game_exists(cursor, lichess_id):
     return result[0]
 
 
-def save_game(cursor, lichess_id, date, white, black):
+def save_game_to_db(cursor, lichess_id, date, white, black):
+    cursor.execute("""
+            DELETE FROM games
+            WHERE lichess_id = ?
+            """, (lichess_id,))
+
     cursor.execute("""        
         INSERT INTO games
         (lichess_id, date, white, black)
@@ -52,16 +57,18 @@ def save_game(cursor, lichess_id, date, white, black):
         white,
         black
     ))
+
     cursor.execute("""
         SELECT game_id FROM games
         WHERE lichess_id = ?
         """, (lichess_id,))
+
     game_id = cursor.fetchone()[0]
 
     return game_id
 
 
-def save_move(cursor, game_id, move_nr, move_cost):
+def save_moves_to_db(cursor, game_id, move_nr, move_cost):
     cursor.execute("""
         INSERT INTO moves
         (game_id, hmove_num, move_cost)
@@ -83,7 +90,7 @@ def save_move(cursor, game_id, move_nr, move_cost):
     return move_id
 
 
-def save_tag(cursor, tag):
+def save_tags_to_db(cursor, tag):
     cursor.execute("""
         INSERT OR IGNORE INTO tags
         (tag)
@@ -98,7 +105,7 @@ def save_tag(cursor, tag):
     return tag_id
 
 
-def save_move_tag(cursor, move_id, tag_id):
+def save_moves_tags_to_db(cursor, move_id, tag_id):
     cursor.execute("""
         INSERT INTO moves_tags
         (move_id, tag_id)

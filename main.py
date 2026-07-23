@@ -46,10 +46,12 @@ class Window(QWidget):
         #
 
         self.game = None
+        self.existing_game_id = None
         self.lichess_id = None
         self.move_obj = None
         self.flip_flag = True
         self.current_move_num = 0
+        self.load_enable_flag = True
 
         # --------------------------------------------------------------------
         # create widgets
@@ -305,9 +307,9 @@ class Window(QWidget):
                             Qt.AlignmentFlag.AlignBottom)
 
         label = QLabel(text)
+        layout.setContentsMargins(0, 0, 20, 20)
 
         if "WARNING" in text:
-            layout.setContentsMargins(0, 0, 20, 45)
             label.setStyleSheet("""
                 QLabel {
                     color: #E0B953;
@@ -317,7 +319,6 @@ class Window(QWidget):
                 }
             """)
         else:
-            layout.setContentsMargins(0, 0, 20, 20)
             label.setStyleSheet("""
                 QLabel {
                     background-color: rgb(40, 40, 40);
@@ -493,42 +494,46 @@ class Window(QWidget):
     # analysis session operations
 
     def load_game(self):
-        # lichess_url = QApplication.clipboard().text()
-        # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
-        lichess_url = "https://lichess.org/HbXe1F1j/black"
-        if "study" in lichess_url:
-            my_token = "lip_XB7WRyKqvpEnfFW9iHox"
-            self.lichess_id = lichess_url.split("study/")[1]
-            req_game = requests.get(
-                f"https://lichess.org/api/study/{self.lichess_id}.pgn",
-                headers={"Authorization": f"Bearer {my_token}"})
-        else:
-            self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
-            req_game = requests.get(
-                f"https://lichess.org/game/export/{self.lichess_id}")
+        if self.load_enable_flag:
 
-        self.game = Game(req_game)
+            # lichess_url = QApplication.clipboard().text()
+            # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
+            lichess_url = "https://lichess.org/HbXe1F1j/black"
+            if "study" in lichess_url:
+                my_token = "lip_XB7WRyKqvpEnfFW9iHox"
+                self.lichess_id = lichess_url.split("study/")[1]
+                req_game = requests.get(
+                    f"https://lichess.org/api/study/{self.lichess_id}.pgn",
+                    headers={"Authorization": f"Bearer {my_token}"})
+            else:
+                self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
+                req_game = requests.get(
+                    f"https://lichess.org/game/export/{self.lichess_id}")
 
-        if self.game.black in \
-                ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
-            self.flip_flag = not self.flip_flag
+            self.game = Game(req_game)
 
-        self.update_board()
+            if self.game.black in \
+                    ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
+                self.flip_flag = not self.flip_flag
 
-        self.show_message("Game loaded")
+            self.update_board()
 
-        db_file_name = "chess_moves.db"
-        if os.path.exists(db_file_name):
-            conn = sqlite3.connect(db_file_name)
-            cursor = conn.cursor()
-            game_id = db.check_if_game_exists(cursor, self.lichess_id)
-            if game_id:
-                self.show_message("WARNING: Game already exists!")
-                self.game.tag_move_list = db.read_tags_from_db(
-                    cursor,
-                    game_id,
-                    self.game.tag_move_list)
-            self.close_db_connection(conn)
+            db_file_name = "chess_moves.db"
+            if os.path.exists(db_file_name):
+                conn = sqlite3.connect(db_file_name)
+                cursor = conn.cursor()
+                self.existing_game_id = db.check_if_game_exists(cursor, self.lichess_id)
+                if self.existing_game_id:
+                    self.show_message("Game loaded\nWARNING: Game already exists!")
+                    self.game.tag_move_list = db.read_tags_from_db(
+                        cursor,
+                        self.existing_game_id,
+                        self.game.tag_move_list)
+                else:
+                    self.show_message("Game loaded")
+                self.close_db_connection(conn)
+
+            self.load_enable_flag = False
 
     def save_analysis(self):
 
@@ -537,33 +542,38 @@ class Window(QWidget):
 
         db_file_name = "chess_moves.db"
         conn = sqlite3.connect(db_file_name)
+        conn.execute("PRAGMA foreign_keys = ON")
         cursor = conn.cursor()
 
         db.initialize_database(cursor)
 
-        game_id = db.save_game(cursor=cursor,
-                               lichess_id=self.lichess_id,
-                               date=self.game.date,
-                               white=self.game.white,
-                               black=self.game.black)
+        new_game_id = db.save_game_to_db(cursor=cursor,
+                                     lichess_id=self.lichess_id,
+                                     date=self.game.date,
+                                     white=self.game.white,
+                                     black=self.game.black)
 
         for imove in range(self.current_move_num):
-            move_id = db.save_move(cursor=cursor,
-                                   game_id=game_id,
-                                   move_nr=imove + 1,
-                                   move_cost=self.game.cost_list[imove])
+            move_id = db.save_moves_to_db(cursor=cursor,
+                                          game_id=new_game_id,
+                                          move_nr=imove + 1,
+                                          move_cost=self.game.cost_list[imove])
 
             tag_list = self.game.tag_move_list[imove]
             for tag in tag_list:
-                tag_id = db.save_tag(cursor=cursor,
-                                     tag=tag)
+                tag_id = db.save_tags_to_db(cursor=cursor,
+                                            tag=tag)
 
-                db.save_move_tag(cursor=cursor,
-                                 move_id=move_id,
-                                 tag_id=tag_id)
+                db.save_moves_tags_to_db(cursor=cursor,
+                                         move_id=move_id,
+                                         tag_id=tag_id)
 
         self.close_db_connection(conn)
-        self.show_message("Analysis saved")
+
+        if self.existing_game_id:
+            self.show_message("Analysis updated")
+        else:
+            self.show_message("Analysis saved")
 
     @staticmethod
     def close_db_connection(connection):
