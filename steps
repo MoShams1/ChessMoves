@@ -2,7 +2,8 @@
 ------------------------------------
 CHESS ANNOTATOR
 
-[] when the game already existed, warn the user about the impending overwrite proceeding
+[done] when the game already existed, warn the user about the impending overwrite proceeding
+[] add reset button to reset all tags of the current game
 
 [] handle connection error: requests.exceptions.ConnectionError
 

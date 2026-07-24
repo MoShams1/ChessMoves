@@ -51,7 +51,7 @@ class Window(QWidget):
         self.move_obj = None
         self.flip_flag = True
         self.current_move_num = 0
-        self.load_enable_flag = True
+        self.game_loaded_flag = False
 
         # --------------------------------------------------------------------
         # create widgets
@@ -92,18 +92,19 @@ class Window(QWidget):
         self.player_top_lbl.setFont(self.player_font)
         self.player_bottom_lbl.setFont(self.player_font)
 
-        self.frame = QFrame()
-        self.frame.setFrameShape(QFrame.Shape.Box)
-        self.frame.setObjectName("MyFrame")
-        self.frame.setStyleSheet("#MyFrame { border: 3px solid #262626; }")
+        self.message_font = QFont()
+        self.message_font.setPointSize(10)
 
         # --------------------------------------------------------------------
         # create layouts
 
         board_layout = self.create_board_layout()
-        button_layout = self.create_button_layout()
         eval_layout = self.create_eval_layout()
         tag_layout = self.create_tag_layout()
+
+        button_layout = self.create_button_layout()
+        button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        button_layout.setContentsMargins(0, 0, 0, 0)
 
         # --------------------------------------------------------------------
         # organize layouts
@@ -118,14 +119,17 @@ class Window(QWidget):
                                  Qt.AlignmentFlag.AlignHCenter)
         game_layout.addLayout(board_layout)
         game_layout.addLayout(eval_layout)
-        game_layout.addLayout(button_layout)
 
-        tag_tab_master_layout = QHBoxLayout()
-        tag_tab_master_layout.addLayout(game_layout, 4)
-        tag_tab_master_layout.addLayout(tag_layout, 3)
-        tag_tab_master_layout.setContentsMargins(50, 30, 50, 30)
+        tab_tag_master_layout_main = QHBoxLayout()
+        tab_tag_master_layout_main.addLayout(game_layout, 4)
+        tab_tag_master_layout_main.addLayout(tag_layout, 3)
 
-        self.tab_tag.setLayout(tag_tab_master_layout)
+        tab_tag_master_layout = QVBoxLayout()
+        tab_tag_master_layout.addLayout(tab_tag_master_layout_main)
+        tab_tag_master_layout.addLayout(button_layout)
+        tab_tag_master_layout.setContentsMargins(50, 50, 50, 40)
+
+        self.tab_tag.setLayout(tab_tag_master_layout)
 
         self.tab_widget.addTab(self.tab_tag, "Tag")
         self.tab_widget.addTab(self.tab_report, "Report")
@@ -139,18 +143,21 @@ class Window(QWidget):
         # button connections
 
         self.button_widgets["Load"].clicked.connect(self.load_game)
+        self.button_widgets["Save"].clicked.connect(self.save_analysis_to_db)
 
         self.button_widgets["URL"].clicked.connect(
-            lambda: self.copy_text(self.game.url,
+            lambda: self.copy_to_clipboard(self.game.url,
                                    "Game URL copied to clipboard"))
         self.button_widgets["PGN"].clicked.connect(
-            lambda: self.copy_text(self.game.pgn,
+            lambda: self.copy_to_clipboard(self.game.pgn,
                                    "Game PGN copied to clipboard"))
         self.button_widgets["FEN"].clicked.connect(
-            lambda: self.copy_text(self.game.board.fen(),
+            lambda: self.copy_to_clipboard(self.game.board.fen(),
                                    "Position copied to clipboard"))
 
-        self.button_widgets["Save"].clicked.connect(self.save_analysis)
+        self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
+        self.button_widgets["Quit"].clicked.connect(self.close)
+
 
     # ///////////////////////////////////////////////////////////////////////
     # BOARD BEHAVIOR AND VISUALS
@@ -270,7 +277,7 @@ class Window(QWidget):
                 self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
                                          move_nr=self.current_move_num)
             self.current_move_num += 1
-            self.reseat_tags_in_ui()
+            self.clear_tags_in_ui()
             self.load_tags_to_ui(move_nr=self.current_move_num)
 
             self.move_obj = self.game.move_obj_list[self.current_move_num - 1]
@@ -286,7 +293,7 @@ class Window(QWidget):
             self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
                                      move_nr=self.current_move_num)
             self.current_move_num -= 1
-            self.reseat_tags_in_ui()
+            self.clear_tags_in_ui()
             self.load_tags_to_ui(move_nr=self.current_move_num)
 
             if self.current_move_num == 0:
@@ -307,7 +314,8 @@ class Window(QWidget):
                             Qt.AlignmentFlag.AlignBottom)
 
         label = QLabel(text)
-        layout.setContentsMargins(0, 0, 20, 20)
+        label.setFont(self.message_font)
+        layout.setContentsMargins(0, 0, 10, 10)
 
         if "WARNING" in text:
             label.setStyleSheet("""
@@ -360,26 +368,40 @@ class Window(QWidget):
         return layout
 
     def create_button_layout(self):
-        button_names = ["Load", "URL", "PGN", "FEN", "Save"]
         layout = QHBoxLayout()
-        layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.setContentsMargins(0, 15, 0, 0)
-        button_tootips = {
-            "Load": "Load game (L)",
-            "URL": "Copy game URL (U)",
-            "PGN": "Copy game PGN (P)",
-            "FEN": "Copy position FEN (N)",
-            "Save": "Save analysis (S)"
+        buttons = {
+            "Load": {"tooltip": "Load game (L)",
+                     "width": 80,
+                     "spacing": 0},
+            "Save": {"tooltip": "Save analysis (S)",
+                     "width": 80,
+                     "spacing": 40},
+            "URL": {"tooltip": "Copy game URL (U)",
+                    "width": 60,
+                    "spacing": 0},
+            "PGN": {"tooltip": "Copy game PGN (P)",
+                    "width": 60,
+                    "spacing": 0},
+            "FEN": {"tooltip": "Copy position FEN (N)",
+                    "width": 60,
+                    "spacing": 40},
+            "Reset": {"tooltip": "Reset game tags (R)",
+                      "width": 80,
+                      "spacing": 0},
+            "Quit": {"tooltip": "Quit session (Esc)",
+                     "width": 80,
+                     "spacing": 0}
         }
-        for button_name in button_names:
+
+        for button_name, config in buttons.items():
             button_widget = QPushButton(button_name)
-            button_widget.setToolTip(button_tootips[button_name])
+            button_widget.setToolTip(config["tooltip"])
+            button_widget.setFixedWidth(config["width"])
+
             self.button_widgets[button_name] = button_widget
-            if button_name == "Load" or button_name == "Save":
-                button_widget.setFixedWidth(100)
-            else:
-                button_widget.setFixedWidth(70)
             layout.addWidget(button_widget)
+            layout.addSpacing(int(config["spacing"]))
+
         return layout
 
     def create_eval_layout(self):
@@ -484,7 +506,7 @@ class Window(QWidget):
         for tag in tag_list:
             self.tag_widgets[tag].setChecked(True)
 
-    def reseat_tags_in_ui(self):
+    def clear_tags_in_ui(self):
         self.rb_group.setExclusive(False)
         for value in self.tag_widgets.values():
             value.setChecked(False)
@@ -494,48 +516,47 @@ class Window(QWidget):
     # analysis session operations
 
     def load_game(self):
-        if self.load_enable_flag:
 
-            # lichess_url = QApplication.clipboard().text()
-            # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
-            lichess_url = "https://lichess.org/HbXe1F1j/black"
-            if "study" in lichess_url:
-                my_token = "lip_XB7WRyKqvpEnfFW9iHox"
-                self.lichess_id = lichess_url.split("study/")[1]
-                req_game = requests.get(
-                    f"https://lichess.org/api/study/{self.lichess_id}.pgn",
-                    headers={"Authorization": f"Bearer {my_token}"})
+        # lichess_url = QApplication.clipboard().text()
+        # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
+        lichess_url = "https://lichess.org/HbXe1F1j/black"
+        if "study" in lichess_url:
+            my_token = "lip_XB7WRyKqvpEnfFW9iHox"
+            self.lichess_id = lichess_url.split("study/")[1]
+            req_game = requests.get(
+                f"https://lichess.org/api/study/{self.lichess_id}.pgn",
+                headers={"Authorization": f"Bearer {my_token}"})
+        else:
+            self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
+            req_game = requests.get(
+                f"https://lichess.org/game/export/{self.lichess_id}")
+
+        self.game = Game(req_game)
+
+        if self.game.black in \
+                ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
+            self.flip_flag = not self.flip_flag
+
+        self.update_board()
+
+        db_file_name = "chess_moves.db"
+        if os.path.exists(db_file_name):
+            conn = sqlite3.connect(db_file_name)
+            cursor = conn.cursor()
+            self.existing_game_id = db.check_if_game_exists(cursor, self.lichess_id)
+            if self.existing_game_id:
+                self.show_message("WARNING: Game already exists!")
+                self.game.tag_move_list = db.read_tags_from_db(
+                    cursor,
+                    self.existing_game_id,
+                    self.game.tag_move_list)
             else:
-                self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
-                req_game = requests.get(
-                    f"https://lichess.org/game/export/{self.lichess_id}")
+                self.show_message("Game loaded")
+            self.close_db_connection(conn)
 
-            self.game = Game(req_game)
+        self.game_loaded_flag = True
 
-            if self.game.black in \
-                    ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
-                self.flip_flag = not self.flip_flag
-
-            self.update_board()
-
-            db_file_name = "chess_moves.db"
-            if os.path.exists(db_file_name):
-                conn = sqlite3.connect(db_file_name)
-                cursor = conn.cursor()
-                self.existing_game_id = db.check_if_game_exists(cursor, self.lichess_id)
-                if self.existing_game_id:
-                    self.show_message("Game loaded\nWARNING: Game already exists!")
-                    self.game.tag_move_list = db.read_tags_from_db(
-                        cursor,
-                        self.existing_game_id,
-                        self.game.tag_move_list)
-                else:
-                    self.show_message("Game loaded")
-                self.close_db_connection(conn)
-
-            self.load_enable_flag = False
-
-    def save_analysis(self):
+    def save_analysis_to_db(self):
 
         tag_list = self.read_tags_from_ui()
         self.save_tags_to_memory(tag_list, self.current_move_num)
@@ -575,6 +596,11 @@ class Window(QWidget):
         else:
             self.show_message("Analysis saved")
 
+    def reset_game_tags(self):
+        self.game.tag_move_list = [[] for _ in range(len(self.game.moves))]
+        self.clear_tags_in_ui()
+        self.show_message("Tags reset")
+
     @staticmethod
     def close_db_connection(connection):
         try:
@@ -593,39 +619,45 @@ class Window(QWidget):
         if event.key() == Qt.Key.Key_Escape:
             self.close()
 
+
         elif event.key() == Qt.Key.Key_Right:
             self.next_move()
 
         elif event.key() == Qt.Key.Key_Left:
             self.previous_move()
 
+
         elif event.key() == Qt.Key.Key_F:
             self.flip_flag = not self.flip_flag
             self.update_board()
 
-        elif event.key() == Qt.Key.Key_L:
+        elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
             self.load_game()
 
-        elif event.key() == Qt.Key.Key_U:
-            self.copy_text(self.game.url,
+
+        elif self.game_loaded_flag and event.key() == Qt.Key.Key_U:
+            self.copy_to_clipboard(self.game.url,
                            "Game URL copied to clipboard")
 
-        elif event.key() == Qt.Key.Key_P:
-            self.copy_text(self.game.pgn,
+        elif self.game_loaded_flag and event.key() == Qt.Key.Key_P:
+            self.copy_to_clipboard(self.game.pgn,
                            "Game PGN copied to clipboard")
 
-        elif event.key() == Qt.Key.Key_N:
-            self.copy_text(self.game.board.fen(),
+        elif self.game_loaded_flag and event.key() == Qt.Key.Key_N:
+            self.copy_to_clipboard(self.game.board.fen(),
                            "Position copied to clipboard")
 
 
         elif event.key() == Qt.Key.Key_S:
-            self.save_analysis()
+            self.save_analysis_to_db()
+
+        elif event.key() == Qt.Key.Key_R:
+            self.reset_game_tags()
 
     # ///////////////////////////////////////////////////////////////////////
     # other functions
 
-    def copy_text(self, text, message):
+    def copy_to_clipboard(self, text, message):
         QApplication.clipboard().setText(text)
         self.show_message(message)
 
