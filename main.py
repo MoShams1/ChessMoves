@@ -575,22 +575,22 @@ class Window(QWidget):
                                          black=self.game.black)
 
         for imove in range(self.current_move_num):
-            move_id = db.save_moves_to_db(
-                cursor=cursor,
-                game_id=new_game_id,
-                move_num=imove + 1,
-                move_notation=self.move_notation_widget.text(),
-                move_cost=self.game.cost_list[imove],
-                fen_before=self.game.fen_list[imove])
-
             tag_list = self.game.tag_move_list[imove]
-            for tag in tag_list:
-                tag_id = db.save_tags_to_db(cursor=cursor,
-                                            tag=tag)
+            if tag_list:
+                move_id = db.save_moves_to_db(
+                    cursor=cursor,
+                    game_id=new_game_id,
+                    move_num=imove + 1,
+                    move_notation=self.move_notation_widget.text(),
+                    move_cost=self.game.cost_list[imove],
+                    fen_before=self.game.fen_list[imove])
 
-                db.save_moves_tags_to_db(cursor=cursor,
-                                         move_id=move_id,
-                                         tag_id=tag_id)
+                for tag in tag_list:
+                    tag_id = db.save_tags_to_db(cursor=cursor,
+                                                tag=tag)
+                    db.save_moves_tags_to_db(cursor=cursor,
+                                             move_id=move_id,
+                                             tag_id=tag_id)
 
         self.close_db_connection(conn)
 
