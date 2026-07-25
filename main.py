@@ -21,8 +21,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QCheckBox,
                              QTabWidget,
                              QTabBar,
-                             QGraphicsOpacityEffect,
-                             QFrame)
+                             QGraphicsOpacityEffect)
 
 
 # noinspection PyUnresolvedReferences
@@ -62,15 +61,15 @@ class Window(QWidget):
         self.tab_report = QWidget()
         self.tab_train = QWidget()
 
-        self.player_top_lbl = QLabel()
-        self.player_bottom_lbl = QLabel()
+        self.player_top_widget = QLabel()
+        self.player_bottom_widget = QLabel()
 
-        self.image_board_lbl = QLabel()
+        self.image_board_widget = QLabel()
         self.pixmap = QPixmap()
 
-        self.move_notation_lbl = QLabel()
-        self.move_cost_lbl = QLabel()
-        self.eval_lbl = QLabel()
+        self.move_notation_widget = QLabel()
+        self.move_cost_widget = QLabel()
+        self.eval_widget = QLabel()
 
         self.button_widgets = {}
 
@@ -89,8 +88,8 @@ class Window(QWidget):
         self.player_font = QFont()
         self.player_font.setBold(True)
         self.player_font.setPointSize(14)
-        self.player_top_lbl.setFont(self.player_font)
-        self.player_bottom_lbl.setFont(self.player_font)
+        self.player_top_widget.setFont(self.player_font)
+        self.player_bottom_widget.setFont(self.player_font)
 
         self.message_font = QFont()
         self.message_font.setPointSize(10)
@@ -147,17 +146,16 @@ class Window(QWidget):
 
         self.button_widgets["URL"].clicked.connect(
             lambda: self.copy_to_clipboard(self.game.url,
-                                   "Game URL copied to clipboard"))
+                                           "Game URL copied to clipboard"))
         self.button_widgets["PGN"].clicked.connect(
             lambda: self.copy_to_clipboard(self.game.pgn,
-                                   "Game PGN copied to clipboard"))
+                                           "Game PGN copied to clipboard"))
         self.button_widgets["FEN"].clicked.connect(
             lambda: self.copy_to_clipboard(self.game.board.fen(),
-                                   "Position copied to clipboard"))
+                                           "Position copied to clipboard"))
 
         self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
         self.button_widgets["Quit"].clicked.connect(self.close)
-
 
     # ///////////////////////////////////////////////////////////////////////
     # BOARD BEHAVIOR AND VISUALS
@@ -178,13 +176,13 @@ class Window(QWidget):
 
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
-        self.image_board_lbl.setPixmap(self.pixmap)
+        self.image_board_widget.setPixmap(self.pixmap)
 
-        self.player_top_lbl.setText("?")
-        self.player_bottom_lbl.setText("?")
-        self.move_notation_lbl.setText("?")
-        self.move_cost_lbl.setText("?")
-        self.eval_lbl.setText("?")
+        self.player_top_widget.setText("?")
+        self.player_bottom_widget.setText("?")
+        self.move_notation_widget.setText("?")
+        self.move_cost_widget.setText("?")
+        self.eval_widget.setText("?")
 
     def update_board(self):
         svgimage = chess.svg.board(board=self.game.board,
@@ -202,7 +200,7 @@ class Window(QWidget):
 
         pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
         self.pixmap.loadFromData(pngimage)
-        self.image_board_lbl.setPixmap(self.pixmap)
+        self.image_board_widget.setPixmap(self.pixmap)
 
         self.set_board_orientation()
 
@@ -214,10 +212,10 @@ class Window(QWidget):
             else:
                 prefix = f"{self.current_move_num // 2}... "
 
-            self.move_notation_lbl.setText(
+            self.move_notation_widget.setText(
                 f"{prefix}{self.game.moves[self.current_move_num - 1]}")
 
-            self.move_cost_lbl.setText(
+            self.move_cost_widget.setText(
                 f"{self.game.cost_list[self.current_move_num - 1]}")
 
             self.set_move_cost_color()
@@ -226,46 +224,46 @@ class Window(QWidget):
 
             if isinstance(current_eval, float):
                 if not (current_eval < 0):
-                    self.eval_lbl.setText(f"+{current_eval}")
+                    self.eval_widget.setText(f"+{current_eval}")
                 else:
-                    self.eval_lbl.setText(f"{current_eval}")
+                    self.eval_widget.setText(f"{current_eval}")
 
             if isinstance(current_eval, str):
-                self.eval_lbl.setText(current_eval)
+                self.eval_widget.setText(current_eval)
 
         else:
-            self.move_notation_lbl.setText("-")
-            self.move_cost_lbl.setText("-")
-            self.eval_lbl.setText("-")
+            self.move_notation_widget.setText("-")
+            self.move_cost_widget.setText("-")
+            self.eval_widget.setText("-")
 
     def set_move_cost_color(self):
-        cost = self.move_cost_lbl.text()
+        cost = self.move_cost_widget.text()
         if cost == "Unavoidable Checkmate" or cost == "Missed Checkmate":
-            self.move_cost_lbl.setStyleSheet("color: #EC7A5A")
-            self.move_notation_lbl.setStyleSheet("color: #EC7A5A")
+            self.move_cost_widget.setStyleSheet("color: #EC7A5A")
+            self.move_notation_widget.setStyleSheet("color: #EC7A5A")
         else:
             cost = float(cost)
             if .5 <= cost < 1:
-                self.move_cost_lbl.setStyleSheet("color: #4AA8CF")
-                self.move_notation_lbl.setStyleSheet("color: #4AA8CF")
+                self.move_cost_widget.setStyleSheet("color: #4AA8CF")
+                self.move_notation_widget.setStyleSheet("color: #4AA8CF")
             elif 1 <= cost < 3:
-                self.move_cost_lbl.setStyleSheet("color: #E0B953")
-                self.move_notation_lbl.setStyleSheet("color: #E0B953")
+                self.move_cost_widget.setStyleSheet("color: #E0B953")
+                self.move_notation_widget.setStyleSheet("color: #E0B953")
             elif cost >= 3:
-                self.move_cost_lbl.setStyleSheet("color: #EC7A5A")
-                self.move_notation_lbl.setStyleSheet("color: #EC7A5A")
+                self.move_cost_widget.setStyleSheet("color: #EC7A5A")
+                self.move_notation_widget.setStyleSheet("color: #EC7A5A")
             else:
-                self.move_cost_lbl.setStyleSheet("color: #D3D3D3")
-                self.move_notation_lbl.setStyleSheet("color: #D3D3D3")
+                self.move_cost_widget.setStyleSheet("color: #D3D3D3")
+                self.move_notation_widget.setStyleSheet("color: #D3D3D3")
 
     def set_board_orientation(self):
         if self.flip_flag:
-            self.player_top_lbl.setText(self.game.black)
-            self.player_bottom_lbl.setText(self.game.white)
+            self.player_top_widget.setText(self.game.black)
+            self.player_bottom_widget.setText(self.game.white)
 
         if not self.flip_flag:
-            self.player_top_lbl.setText(self.game.white)
-            self.player_bottom_lbl.setText(self.game.black)
+            self.player_top_widget.setText(self.game.white)
+            self.player_bottom_widget.setText(self.game.black)
 
     def next_move(self):
         if (
@@ -276,6 +274,7 @@ class Window(QWidget):
             if self.current_move_num > 0:
                 self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
                                          move_nr=self.current_move_num)
+            self.game.fen_list[self.current_move_num] = self.game.board.fen()
             self.current_move_num += 1
             self.clear_tags_in_ui()
             self.load_tags_to_ui(move_nr=self.current_move_num)
@@ -297,9 +296,9 @@ class Window(QWidget):
             self.load_tags_to_ui(move_nr=self.current_move_num)
 
             if self.current_move_num == 0:
-                self.move_notation_lbl.setText("-")
-                self.move_cost_lbl.setText("-")
-                self.eval_lbl.setText("-")
+                self.move_notation_widget.setText("-")
+                self.move_cost_widget.setText("-")
+                self.eval_widget.setText("-")
 
             self.game.board.pop()
             self.update_board()
@@ -362,9 +361,9 @@ class Window(QWidget):
 
     def create_board_layout(self):
         layout = QVBoxLayout()
-        layout.addWidget(self.player_top_lbl)
-        layout.addWidget(self.image_board_lbl)
-        layout.addWidget(self.player_bottom_lbl)
+        layout.addWidget(self.player_top_widget)
+        layout.addWidget(self.image_board_widget)
+        layout.addWidget(self.player_bottom_widget)
         return layout
 
     def create_button_layout(self):
@@ -421,9 +420,9 @@ class Window(QWidget):
         layout_title.addWidget(cost_label)
         layout_title.addWidget(eval_label)
 
-        layout_value.addWidget(self.move_notation_lbl)
-        layout_value.addWidget(self.move_cost_lbl)
-        layout_value.addWidget(self.eval_lbl)
+        layout_value.addWidget(self.move_notation_widget)
+        layout_value.addWidget(self.move_cost_widget)
+        layout_value.addWidget(self.eval_widget)
 
         layout.addLayout(layout_title)
         layout.addSpacing(10)
@@ -543,7 +542,8 @@ class Window(QWidget):
         if os.path.exists(db_file_name):
             conn = sqlite3.connect(db_file_name)
             cursor = conn.cursor()
-            self.existing_game_id = db.check_if_game_exists(cursor, self.lichess_id)
+            self.existing_game_id = db.check_if_game_exists(cursor,
+                                                            self.lichess_id)
             if self.existing_game_id:
                 self.show_message("WARNING: Game already exists!")
                 self.game.tag_move_list = db.read_tags_from_db(
@@ -569,16 +569,19 @@ class Window(QWidget):
         db.initialize_database(cursor)
 
         new_game_id = db.save_game_to_db(cursor=cursor,
-                                     lichess_id=self.lichess_id,
-                                     date=self.game.date,
-                                     white=self.game.white,
-                                     black=self.game.black)
+                                         lichess_id=self.lichess_id,
+                                         date=self.game.date,
+                                         white=self.game.white,
+                                         black=self.game.black)
 
         for imove in range(self.current_move_num):
-            move_id = db.save_moves_to_db(cursor=cursor,
-                                          game_id=new_game_id,
-                                          move_nr=imove + 1,
-                                          move_cost=self.game.cost_list[imove])
+            move_id = db.save_moves_to_db(
+                cursor=cursor,
+                game_id=new_game_id,
+                move_num=imove + 1,
+                move_notation=self.move_notation_widget.text(),
+                move_cost=self.game.cost_list[imove],
+                fen_before=self.game.fen_list[imove])
 
             tag_list = self.game.tag_move_list[imove]
             for tag in tag_list:
@@ -637,15 +640,15 @@ class Window(QWidget):
 
         elif self.game_loaded_flag and event.key() == Qt.Key.Key_U:
             self.copy_to_clipboard(self.game.url,
-                           "Game URL copied to clipboard")
+                                   "Game URL copied to clipboard")
 
         elif self.game_loaded_flag and event.key() == Qt.Key.Key_P:
             self.copy_to_clipboard(self.game.pgn,
-                           "Game PGN copied to clipboard")
+                                   "Game PGN copied to clipboard")
 
         elif self.game_loaded_flag and event.key() == Qt.Key.Key_N:
             self.copy_to_clipboard(self.game.board.fen(),
-                           "Position copied to clipboard")
+                                   "Position copied to clipboard")
 
 
         elif event.key() == Qt.Key.Key_S:
@@ -764,6 +767,9 @@ class Game:
 
         # create a preallocated list to store tags for each move
         self.tag_move_list = [[] for _ in range(len(self.moves))]
+
+        # create a preallocated list to store fen for each move
+        self.fen_list = [[] for _ in range(len(self.moves))]
 
 
 # --------------------------------------------------------------------

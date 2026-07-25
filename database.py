@@ -12,7 +12,11 @@ def initialize_database(cursor):
             move_id INTEGER PRIMARY KEY,
             game_id INTEGER REFERENCES games(game_id) ON DELETE CASCADE,
             hmove_num INTEGER,
+            move_notation TEXT,
             move_cost REAL,     
+            fen_before TEXT,
+            times_practiced DEFAULT 0,
+            learning_idx DEFAULT 0,
             UNIQUE(game_id, hmove_num) 
         );
         
@@ -26,6 +30,7 @@ def initialize_database(cursor):
             move_id INTEGER REFERENCES moves(move_id) ON DELETE CASCADE,
             tag_id INTEGER REFERENCES tags(tag_id)
         );
+                   
     """)
 
 
@@ -68,22 +73,26 @@ def save_game_to_db(cursor, lichess_id, date, white, black):
     return game_id
 
 
-def save_moves_to_db(cursor, game_id, move_nr, move_cost):
+def save_moves_to_db(cursor, game_id, move_num, move_notation, move_cost,
+                     fen_before):
     cursor.execute("""
         INSERT INTO moves
-        (game_id, hmove_num, move_cost)
-        VALUES(?, ?, ?)        
+        (game_id, hmove_num, move_cost, fen_before, times_practiced, 
+        learning_idx)
+        VALUES(?, ?, ?, ?, ?)        
         """, (
         game_id,
-        move_nr,
-        move_cost
+        move_num,
+        move_notation,
+        move_cost,
+        fen_before
     ))
     cursor.execute("""
         SELECT move_id FROM moves
         WHERE game_id = ? AND hmove_num = ?
         """, (
         game_id,
-        move_nr
+        move_num
     ))
     move_id = cursor.fetchone()[0]
 

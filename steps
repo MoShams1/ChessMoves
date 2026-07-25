@@ -1,23 +1,39 @@
+GENERAL
+------------------------------------
+
+[done] add these columns to moves table
+fen
+played_move
+learning_idx    DEFAULT 0
+times_shown     DEFAULT 0
+
+[done] FEN should refer to the position before the played move (save before push)
+
+[] save only those moves that are annotated
 
 ------------------------------------
-CHESS ANNOTATOR
-
-[done] when the game already existed, warn the user about the impending overwrite proceeding
-[] add reset button to reset all tags of the current game
+ANNOTATION
 
 [] handle connection error: requests.exceptions.ConnectionError
-
 [] cleanup the database file name variables
 
 ------------------------------------
-CHESS ANALYZER
+TRAINING
 
-[] create a summary of the tags
-[] pychart of the mistake parental categories
-[] evolution of the pychart as a line graph
+[] add a button that reveals the played move and the entire evaluation and player info and tags and lichess_id (to change the annotation in case something needs update)
+[] Did you find a good move? yes, no, skip
+yes	-> learning_idx +1
+no 	-> learning_idx -1
+skip 	-> learning_idx =
+
+[] right arrow key shows next position and saves the previous one into memory
+[] add quit session button that saves from memory to db and quits
 
 ------------------------------------
-CHESS TRAINER
+STATISTICS
 
-[] show top costy mistakes and ask for the correct move.
-[] save the training session and the players performance in the database
+[] sort all tags within their category based on frequency
+[] pychart of the mistake parental categories
+
+[] evolution of the pychart as a line graph
+
