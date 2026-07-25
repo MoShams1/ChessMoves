@@ -1,15 +1,15 @@
 GENERAL
 ------------------------------------
 
-[done] add these columns to moves table
-fen
-played_move
-learning_idx    DEFAULT 0
-times_shown     DEFAULT 0
+[] check if things are saved properly:
+	- only tagged moves saved
+	- fen correctly saved
 
-[done] FEN should refer to the position before the played move (save before push)
+[] switch from tabs to windows
 
-[] save only those moves that are annotated
+[] add a master window
+
+[] close database properly when an error occurs while db is connected
 
 ------------------------------------
 ANNOTATION

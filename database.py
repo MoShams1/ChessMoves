@@ -11,13 +11,13 @@ def initialize_database(cursor):
         CREATE TABLE IF NOT EXISTS moves (
             move_id INTEGER PRIMARY KEY,
             game_id INTEGER REFERENCES games(game_id) ON DELETE CASCADE,
-            hmove_num INTEGER,
+            move_num INTEGER,
             move_notation TEXT,
             move_cost REAL,     
             fen_before TEXT,
             times_practiced DEFAULT 0,
             learning_idx DEFAULT 0,
-            UNIQUE(game_id, hmove_num) 
+            UNIQUE(game_id, move_num) 
         );
         
         CREATE TABLE IF NOT EXISTS tags (
@@ -77,9 +77,8 @@ def save_moves_to_db(cursor, game_id, move_num, move_notation, move_cost,
                      fen_before):
     cursor.execute("""
         INSERT INTO moves
-        (game_id, hmove_num, move_cost, fen_before, times_practiced, 
-        learning_idx)
-        VALUES(?, ?, ?, ?, ?)        
+        (game_id, move_num, move_notation, move_cost, fen_before)
+        VALUES(?, ?, ?, ?, ?)
         """, (
         game_id,
         move_num,
@@ -89,7 +88,7 @@ def save_moves_to_db(cursor, game_id, move_num, move_notation, move_cost,
     ))
     cursor.execute("""
         SELECT move_id FROM moves
-        WHERE game_id = ? AND hmove_num = ?
+        WHERE game_id = ? AND move_num = ?
         """, (
         game_id,
         move_num
@@ -134,12 +133,12 @@ def save_moves_tags_to_db(cursor, move_id, tag_id):
 
 def read_tags_from_db(cursor, game_id, tag_move_list):
     cursor.execute("""
-        SELECT moves.hmove_num, tags.tag
+        SELECT moves.move_num, tags.tag
         FROM moves
         JOIN moves_tags ON moves.move_id = moves_tags.move_id
         JOIN tags ON moves_tags.tag_id = tags.tag_id
         WHERE moves.game_id = ?
-        ORDER BY moves.hmove_num
+        ORDER BY moves.move_num
         """, (game_id,))
 
     for move_num, tag in cursor.fetchall():

@@ -145,14 +145,17 @@ class Window(QWidget):
         self.button_widgets["Save"].clicked.connect(self.save_analysis_to_db)
 
         self.button_widgets["URL"].clicked.connect(
-            lambda: self.copy_to_clipboard(self.game.url,
-                                           "Game URL copied to clipboard"))
+            lambda: self.copy_to_clipboard(
+                self.game.url,
+                "Game URL copied to clipboard"))
         self.button_widgets["PGN"].clicked.connect(
-            lambda: self.copy_to_clipboard(self.game.pgn,
-                                           "Game PGN copied to clipboard"))
+            lambda: self.copy_to_clipboard(
+                self.game.pgn,
+                "Game PGN copied to clipboard"))
         self.button_widgets["FEN"].clicked.connect(
-            lambda: self.copy_to_clipboard(self.game.board.fen(),
-                                           "Position copied to clipboard"))
+            lambda: self.copy_to_clipboard(
+                self.game.board.fen(),
+                "Position copied to clipboard"))
 
         self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
         self.button_widgets["Quit"].clicked.connect(self.close)
@@ -303,62 +306,6 @@ class Window(QWidget):
             self.game.board.pop()
             self.update_board()
 
-    def show_message(self, text):
-
-        overlay = QWidget(self)
-        overlay.setGeometry(self.rect())
-
-        layout = QVBoxLayout(overlay)
-        layout.setAlignment(Qt.AlignmentFlag.AlignRight |
-                            Qt.AlignmentFlag.AlignBottom)
-
-        label = QLabel(text)
-        label.setFont(self.message_font)
-        layout.setContentsMargins(0, 0, 10, 10)
-
-        if "WARNING" in text:
-            label.setStyleSheet("""
-                QLabel {
-                    color: #E0B953;
-                    background-color: rgb(40, 40, 40);
-                    padding: 5px;
-                    border-radius: 7px;
-                }
-            """)
-        else:
-            label.setStyleSheet("""
-                QLabel {
-                    background-color: rgb(40, 40, 40);
-                    padding: 5px;
-                    border-radius: 7px;
-                }
-            """)
-
-        layout.addWidget(label)
-        overlay.show()
-
-        # Add opacity effect
-        effect = QGraphicsOpacityEffect(label)
-        effect.setOpacity(1)
-        label.setGraphicsEffect(effect)
-
-        # Wait, then fade out
-        def fade_out():
-            animation = QPropertyAnimation(effect, b"opacity")
-            animation.setDuration(500)  # fade duration in ms
-            animation.setStartValue(effect.opacity())
-            animation.setEndValue(0)
-            animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
-            animation.finished.connect(overlay.deleteLater)
-            animation.start()
-
-            overlay.animation = animation
-
-        QTimer.singleShot(1500, fade_out)
-
-        # ///////////////////////////////////////////////////////////////////////
-        # CREATE LAYOUTS
-
     def create_board_layout(self):
         layout = QVBoxLayout()
         layout.addWidget(self.player_top_widget)
@@ -478,7 +425,8 @@ class Window(QWidget):
 
             if (
                     header == "TACTICAL THEME" or
-                    header == "POSITIONAL DISADVANTAGE"):
+                    header == "POSITIONAL DISADVANTAGE" or
+                    header == ""):
                 layout_right.addLayout(layout_block)
 
         layout.addLayout(layout_left)
@@ -486,6 +434,62 @@ class Window(QWidget):
         layout.addLayout(layout_right)
 
         return layout
+
+    def show_message(self, text):
+
+        overlay = QWidget(self)
+        overlay.setGeometry(self.rect())
+
+        layout = QVBoxLayout(overlay)
+        layout.setAlignment(Qt.AlignmentFlag.AlignRight |
+                            Qt.AlignmentFlag.AlignBottom)
+
+        label = QLabel(text)
+        label.setFont(self.message_font)
+        layout.setContentsMargins(0, 0, 10, 10)
+
+        if "WARNING" in text:
+            label.setStyleSheet("""
+                QLabel {
+                    color: #E0B953;
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
+        else:
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
+
+        layout.addWidget(label)
+        overlay.show()
+
+        # Add opacity effect
+        effect = QGraphicsOpacityEffect(label)
+        effect.setOpacity(1)
+        label.setGraphicsEffect(effect)
+
+        # Wait, then fade out
+        def fade_out():
+            animation = QPropertyAnimation(effect, b"opacity")
+            animation.setDuration(500)  # fade duration in ms
+            animation.setStartValue(effect.opacity())
+            animation.setEndValue(0)
+            animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+            animation.finished.connect(overlay.deleteLater)
+            animation.start()
+
+            overlay.animation = animation
+
+        QTimer.singleShot(1500, fade_out)
+
+        # ///////////////////////////////////////////////////////////////////////
+        # CREATE LAYOUTS
 
     # ///////////////////////////////////////////////////////////////////////
     # tags operations
