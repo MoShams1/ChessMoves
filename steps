@@ -1,12 +1,6 @@
 GENERAL
 ------------------------------------
 
-[] check if things are saved properly:
-	- only tagged moves saved
-	- fen correctly saved
-
-[] switch from tabs to windows
-
 [] add a master window
 
 [] close database properly when an error occurs while db is connected

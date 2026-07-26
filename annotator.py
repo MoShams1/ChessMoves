@@ -19,8 +19,6 @@ from PyQt6.QtWidgets import (QApplication,
                              QButtonGroup,
                              QRadioButton,
                              QCheckBox,
-                             QStyle,
-                             QDialog,
                              QTabBar,
                              QGraphicsOpacityEffect)
 
@@ -112,7 +110,7 @@ class Window(QWidget):
         master_layout = QVBoxLayout()
         master_layout.addLayout(master_layout_top)
         master_layout.addLayout(button_layout)
-
+        master_layout.setContentsMargins(50, 50, 50, 40)
         self.setLayout(master_layout)
 
         # --------------------------------------------------------------------
@@ -295,29 +293,33 @@ class Window(QWidget):
         return layout
 
     def create_button_layout(self):
+        width_small = 50
+        width_large = 70
+        spacing_small = -10
+        spacing_large = 15
         layout = QHBoxLayout()
         buttons = {
             "Load": {"tooltip": "Load game (L)",
-                     "width": 80,
-                     "spacing": 0},
+                     "width": width_large,
+                     "spacing": spacing_small},
             "Save": {"tooltip": "Save analysis (S)",
-                     "width": 80,
-                     "spacing": 40},
+                     "width": width_large,
+                     "spacing": spacing_large},
             "URL": {"tooltip": "Copy game URL (U)",
-                    "width": 60,
-                    "spacing": 0},
+                    "width": width_small,
+                    "spacing": spacing_small},
             "PGN": {"tooltip": "Copy game PGN (P)",
-                    "width": 60,
-                    "spacing": 0},
+                    "width": width_small,
+                    "spacing": spacing_small},
             "FEN": {"tooltip": "Copy position FEN (N)",
-                    "width": 60,
-                    "spacing": 40},
+                    "width": width_small,
+                    "spacing": spacing_large},
             "Reset": {"tooltip": "Reset game tags (R)",
-                      "width": 80,
-                      "spacing": 0},
+                      "width": width_large,
+                      "spacing": spacing_small},
             "Quit": {"tooltip": "Quit session (Esc)",
-                     "width": 80,
-                     "spacing": 0}
+                     "width": width_large,
+                     "spacing": spacing_small}
         }
 
         for button_name, config in buttons.items():
@@ -363,7 +365,7 @@ class Window(QWidget):
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignTop |
                             Qt.AlignmentFlag.AlignHCenter)
-        layout.setContentsMargins(25, 15, 0, 0)
+        layout.setContentsMargins(30, 5, 0, 0)
 
         layout_left = QVBoxLayout()
         layout_left.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -430,30 +432,23 @@ class Window(QWidget):
         label.setFont(self.message_font)
         layout.setContentsMargins(0, 0, 10, 10)
 
-        # if "WARNING" in text:
-        #     label.setStyleSheet("""
-        #         QLabel {
-        #             color: #E0B953;
-        #             background-color: rgb(40, 40, 40);
-        #             padding: 5px;
-        #             border-radius: 7px;
-        #         }
-        #     """)
-        # else:
-        #     label.setStyleSheet("""
-        #         QLabel {
-        #             background-color: rgb(40, 40, 40);
-        #             padding: 5px;
-        #             border-radius: 7px;
-        #         }
-        #     """)
-        label.setStyleSheet("""
-                        QLabel {
-                            background-color: rgb(40, 40, 40);
-                            padding: 5px;
-                            border-radius: 7px;
-                        }
-                    """)
+        if "WARNING" in text:
+            label.setStyleSheet("""
+                QLabel {
+                    color: #E0B953;
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
+        else:
+            label.setStyleSheet("""
+                QLabel {
+                    background-color: rgb(40, 40, 40);
+                    padding: 5px;
+                    border-radius: 7px;
+                }
+            """)
 
         layout.addWidget(label)
         overlay.show()
@@ -475,7 +470,7 @@ class Window(QWidget):
 
             overlay.animation = animation
 
-        QTimer.singleShot(1500, fade_out)
+        QTimer.singleShot(2000, fade_out)
 
         # ///////////////////////////////////////////////////////////////////////
         # CREATE LAYOUTS
@@ -539,6 +534,10 @@ class Window(QWidget):
                                                             self.lichess_id)
             if self.existing_game_id:
                 self.show_message("WARNING: Game already exists!")
+                self.game.tag_move_list = db.read_tags_from_db(
+                    cursor,
+                    self.existing_game_id,
+                    self.game.tag_move_list)
             else:
                 self.show_message("Game loaded")
             self.close_db_connection(conn)

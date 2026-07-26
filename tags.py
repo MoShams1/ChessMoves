@@ -40,15 +40,15 @@ tag_source = {
 
     "DIAGNOSIS_cb": [
         "Fatigue",
-        "Anxiety",
-        "Oversight",
+        "Stress",
         "Time Trouble",
         "Mis-Evaluation",
         "Mis-Calculation",
-        "Overconfidence"
+        "Overconfidence",
+        "Underconfidence"
     ],
 
     "_cb": [
-        "Unclear"
+        "Unclear engine evaluation"
     ]
 }
