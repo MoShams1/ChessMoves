@@ -1,12 +1,11 @@
 from PyQt6.QtCore import Qt
+from annotate import run_annotate
 from PyQt6.QtWidgets import (QApplication,
                              QLabel,
                              QWidget,
                              QPushButton,
                              QVBoxLayout,
                              QHBoxLayout)
-
-from annotate import run_annotate
 
 
 class Window(QWidget):
@@ -18,12 +17,12 @@ class Window(QWidget):
         # self.setFixedSize(1000, 800)
         self.resize(300, 130)
         self.setStyleSheet("""
-        QWidget {
-        color: #D3D3D3;
-        }
+            QWidget {
+                color: #D3D3D3;
+            }
         """)
 
-        main_message = QLabel("What do you want to work on?")
+        main_message = QLabel("Select one of the options below:")
         self.button_widgets = {}
 
         self.annotate_window = None

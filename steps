@@ -1,30 +1,37 @@
 GENERAL
 ------------------------------------
 
-[] add a master window
-
 [] close database properly when an error occurs while db is connected
-
-------------------------------------
-ANNOTATION
-
-[] handle connection error: requests.exceptions.ConnectionError
+[] handle internet connection error: requests.exceptions.ConnectionError
 [] cleanup the database file name variables
 
 ------------------------------------
-TRAINING
+ANNOTATE
 
-[] add a button that reveals the played move and the entire evaluation and player info and tags and lichess_id (to change the annotation in case something needs update)
-[] Did you find a good move? yes, no, skip
+
+
+------------------------------------
+TRAIN
+
+[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
+[] "URL" button copies the url (needs to be created from lichess_id?)
+[] "FEN" button copies FEN of the position
+[] "CLOSE" button saves the response in memory into db and closes the train window
+
+[] Show:
+
+Did you find a good move? yes, no, skip
 yes	-> learning_idx +1
 no 	-> learning_idx -1
 skip 	-> learning_idx =
 
-[] right arrow key shows next position and saves the previous one into memory
-[] add quit session button that saves from memory to db and quits
+[] right arrow key saves the response into memory and shows next position
+[] add  button that saves from memory to db and quits
+
+[] positions are selected randomly, but moves with lower learning_idx are more probable to appear
 
 ------------------------------------
-STATISTICS
+REPORT
 
 [] sort all tags within their category based on frequency
 [] pychart of the mistake parental categories

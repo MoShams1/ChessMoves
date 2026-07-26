@@ -42,6 +42,7 @@ tag_source = {
         "Fatigue",
         "Stress",
         "Time Trouble",
+	"Failed Tactics",
         "Mis-Evaluation",
         "Mis-Calculation",
         "Overconfidence",

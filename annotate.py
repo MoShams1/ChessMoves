@@ -2,11 +2,11 @@ import io
 import os
 import chess
 import sqlite3
-import cairosvg
 import requests
 import chess.pgn
 import chess.svg
 import database as db
+from game_panel import GamePanel
 from tags import tag_source
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont
@@ -20,7 +20,6 @@ from PyQt6.QtWidgets import (QApplication,
                              QRadioButton,
                              QCheckBox,
                              QGraphicsOpacityEffect)
-
 
 # noinspection PyUnresolvedReferences
 
@@ -68,17 +67,13 @@ def run_annotate():
             self.rb_group = QButtonGroup()
             self.tag_widgets = {}
 
+            self.game_panel_widget = GamePanel()
+
             # --------------------------------------------------------------------
             # create styles
 
             self.tag_header_font = QFont()
             self.tag_header_font.setBold(True)
-
-            self.player_font = QFont()
-            self.player_font.setBold(True)
-            self.player_font.setPointSize(14)
-            self.player_top_widget.setFont(self.player_font)
-            self.player_bottom_widget.setFont(self.player_font)
 
             self.message_font = QFont()
             self.message_font.setPointSize(10)
@@ -86,8 +81,6 @@ def run_annotate():
             # --------------------------------------------------------------------
             # create layouts
 
-            board_layout = self.create_board_layout()
-            eval_layout = self.create_eval_layout()
             tag_layout = self.create_tag_layout()
 
             button_layout = self.create_button_layout()
@@ -96,25 +89,24 @@ def run_annotate():
             # --------------------------------------------------------------------
             # organize layouts
 
-            game_layout = QVBoxLayout()
-            game_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                     Qt.AlignmentFlag.AlignHCenter)
-            game_layout.addLayout(board_layout)
-            game_layout.addLayout(eval_layout)
-
             master_layout_top = QHBoxLayout()
-            master_layout_top.addLayout(game_layout, 4)
+            master_layout_top.addWidget(self.game_panel_widget, 4)
             master_layout_top.addLayout(tag_layout, 3)
 
             master_layout = QVBoxLayout()
             master_layout.addLayout(master_layout_top)
             master_layout.addLayout(button_layout)
-            master_layout.setContentsMargins(50, 50, 50, 40)
+            master_layout.setContentsMargins(50, 50, 50, 50)
             self.setLayout(master_layout)
 
             # --------------------------------------------------------------------
 
-            self.initialize_board()
+            self.game_panel_widget.show_position(
+                board=chess.Board(),
+                white_player="?",
+                black_player="?",
+                orientation=self.flip_flag,
+            )
 
             # --------------------------------------------------------------------
             # button connections
@@ -142,49 +134,7 @@ def run_annotate():
         # ///////////////////////////////////////////////////////////////////////
         # BOARD BEHAVIOR AND VISUALS
 
-        def initialize_board(self):
-            svgimage = chess.svg.board(board=chess.Board(),
-                                       orientation=self.flip_flag,
-                                       lastmove=self.move_obj,
-                                       colors={
-                                           "square light": "#B0AA98",
-                                           "square dark": "#827A68",
-                                           "square light lastmove": "#a1ad68",
-                                           "square dark lastmove": "#a1ad68"
-                                       },
-                                       coordinates=True,
-                                       size=480
-                                       )
-
-            pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
-            self.pixmap.loadFromData(pngimage)
-            self.image_board_widget.setPixmap(self.pixmap)
-
-            self.player_top_widget.setText("?")
-            self.player_bottom_widget.setText("?")
-            self.move_notation_widget.setText("?")
-            self.move_cost_widget.setText("?")
-            self.eval_widget.setText("?")
-
         def update_board(self):
-            svgimage = chess.svg.board(board=self.game.board,
-                                       orientation=self.flip_flag,
-                                       lastmove=self.move_obj,
-                                       colors={
-                                           "square light": "#B0AA98",
-                                           "square dark": "#827A68",
-                                           "square light lastmove": "#a1ad68",
-                                           "square dark lastmove": "#a1ad68"
-                                       },
-                                       coordinates=True,
-                                       size=480
-                                       )
-
-            pngimage = cairosvg.svg2png(bytestring=svgimage.encode())
-            self.pixmap.loadFromData(pngimage)
-            self.image_board_widget.setPixmap(self.pixmap)
-
-            self.set_board_orientation()
 
             if self.current_move_num > 0:
 
@@ -199,8 +149,6 @@ def run_annotate():
 
                 self.move_cost_widget.setText(
                     f"{self.game.cost_list[self.current_move_num - 1]}")
-
-                self.set_move_cost_color()
 
                 current_eval = self.game.eval_list[self.current_move_num - 1]
 
@@ -218,34 +166,19 @@ def run_annotate():
                 self.move_cost_widget.setText("-")
                 self.eval_widget.setText("-")
 
-        def set_move_cost_color(self):
-            cost = self.move_cost_widget.text()
-            if cost == "Unavoidable Checkmate" or cost == "Missed Checkmate":
-                self.move_cost_widget.setStyleSheet("color: #EC7A5A")
-                self.move_notation_widget.setStyleSheet("color: #EC7A5A")
-            else:
-                cost = float(cost)
-                if .5 <= cost < 1:
-                    self.move_cost_widget.setStyleSheet("color: #4AA8CF")
-                    self.move_notation_widget.setStyleSheet("color: #4AA8CF")
-                elif 1 <= cost < 3:
-                    self.move_cost_widget.setStyleSheet("color: #E0B953")
-                    self.move_notation_widget.setStyleSheet("color: #E0B953")
-                elif cost >= 3:
-                    self.move_cost_widget.setStyleSheet("color: #EC7A5A")
-                    self.move_notation_widget.setStyleSheet("color: #EC7A5A")
-                else:
-                    self.move_cost_widget.setStyleSheet("color: #D3D3D3")
-                    self.move_notation_widget.setStyleSheet("color: #D3D3D3")
+            self.game_panel_widget.show_position(
+                board=self.game.board,
+                white_player=self.game.white,
+                black_player=self.game.black,
+                orientation=self.flip_flag,
+                last_move=self.move_obj,
+                notation=self.move_notation_widget.text(),
+                cost=self.move_cost_widget.text(),
+                evaluation=self.eval_widget.text(),
+            )
 
-        def set_board_orientation(self):
-            if self.flip_flag:
-                self.player_top_widget.setText(self.game.black)
-                self.player_bottom_widget.setText(self.game.white)
-
-            if not self.flip_flag:
-                self.player_top_widget.setText(self.game.white)
-                self.player_bottom_widget.setText(self.game.black)
+            if self.current_move_num > 0:
+                self.game_panel_widget.set_move_cost_color()
 
         def next_move(self):
             if (
@@ -335,39 +268,12 @@ def run_annotate():
 
             return layout
 
-        def create_eval_layout(self):
-            layout = QHBoxLayout()
-            layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            layout.setContentsMargins(20, 30, 0, 15)
-            layout_title = QVBoxLayout()
-            layout_value = QVBoxLayout()
-            move_label = QLabel("Move:")
-            move_label.setFont(self.tag_header_font)
-            cost_label = QLabel("Cost:")
-            cost_label.setFont(self.tag_header_font)
-            eval_label = QLabel("Evaluation:")
-            eval_label.setFont(self.tag_header_font)
-
-            layout_title.addWidget(move_label)
-            layout_title.addWidget(cost_label)
-            layout_title.addWidget(eval_label)
-
-            layout_value.addWidget(self.move_notation_widget)
-            layout_value.addWidget(self.move_cost_widget)
-            layout_value.addWidget(self.eval_widget)
-
-            layout.addLayout(layout_title)
-            layout.addSpacing(10)
-            layout.addLayout(layout_value)
-
-            return layout
-
         def create_tag_layout(self):
 
             layout = QHBoxLayout()
             layout.setAlignment(Qt.AlignmentFlag.AlignTop |
                                 Qt.AlignmentFlag.AlignHCenter)
-            layout.setContentsMargins(30, 5, 0, 0)
+            layout.setContentsMargins(30, 15, 0, 0)
 
             layout_left = QVBoxLayout()
             layout_left.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -477,9 +383,6 @@ def run_annotate():
             # ///////////////////////////////////////////////////////////////////////
             # CREATE LAYOUTS
 
-        # ///////////////////////////////////////////////////////////////////////
-        # tags operations
-
         def read_tags_from_ui(self):
             tag_list = []
             for key, value in self.tag_widgets.items():
@@ -500,9 +403,6 @@ def run_annotate():
             for value in self.tag_widgets.values():
                 value.setChecked(False)
             self.rb_group.setExclusive(True)
-
-        # ///////////////////////////////////////////////////////////////////////
-        # analysis session operations
 
         def load_game(self):
 
@@ -611,9 +511,6 @@ def run_annotate():
             finally:
                 connection.close()
 
-        # ///////////////////////////////////////////////////////////////////////
-        # shortkeys
-
         def keyPressEvent(self, event):
 
             if event.key() == Qt.Key.Key_Escape:
@@ -653,9 +550,6 @@ def run_annotate():
 
             elif event.key() == Qt.Key.Key_R:
                 self.reset_game_tags()
-
-        # ///////////////////////////////////////////////////////////////////////
-        # other functions
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)
