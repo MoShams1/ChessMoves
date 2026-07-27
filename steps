@@ -13,10 +13,10 @@ ANNOTATE
 ------------------------------------
 TRAIN
 
-[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
+[done] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
 [] "URL" button copies the url (needs to be created from lichess_id?)
 [] "FEN" button copies FEN of the position
-[] "CLOSE" button saves the response in memory into db and closes the train window
+[done] "CLOSE" button saves the response in memory into db and closes the train window
 
 [] Show:
 

@@ -1,5 +1,6 @@
 from PyQt6.QtCore import Qt
 from annotate import run_annotate
+from train import run_train
 from PyQt6.QtWidgets import (QApplication,
                              QLabel,
                              QWidget,
@@ -8,7 +9,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QHBoxLayout)
 
 
-class Window(QWidget):
+class MasterWindow(QWidget):
 
     def __init__(self):
         super().__init__()
@@ -25,6 +26,7 @@ class Window(QWidget):
         self.button_widgets = {}
 
         self.annotate_window = None
+        self.train_window = None
 
         # --------------------------------------------------------------------
         # create layouts
@@ -88,7 +90,7 @@ class Window(QWidget):
         if event.key() == Qt.Key.Key_A:
             self.open_annotate()
         elif event.key() == Qt.Key.Key_T:
-            return
+            self.open_train()
         elif event.key() == Qt.Key.Key_R:
             return
         elif event.key() == Qt.Key.Key_Escape:
@@ -97,8 +99,11 @@ class Window(QWidget):
     def open_annotate(self):
         self.annotate_window = run_annotate()
 
+    def open_train(self):
+        self.train_window = run_train()
+
 
 app = QApplication([])
-window = Window()
+window = MasterWindow()
 window.show()
 app.exec()

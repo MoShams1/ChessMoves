@@ -25,7 +25,7 @@ from PyQt6.QtWidgets import (QApplication,
 
 def run_annotate():
 
-    class Window(QWidget):
+    class AnnotateWindow(QWidget):
 
         def __init__(self):
             super().__init__()
@@ -646,6 +646,6 @@ def run_annotate():
             # create a preallocated list to store fen for each move
             self.fen_list = [[] for _ in range(len(self.moves))]
 
-    window = Window()
+    window = AnnotateWindow()
     window.show()
     return window
