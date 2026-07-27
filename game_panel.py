@@ -1,6 +1,5 @@
 import cairosvg
 import chess.svg
-
 from PyQt6.QtCore import Qt
 from PyQt6.QtGui import QFont, QPixmap
 from PyQt6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QWidget
@@ -10,9 +9,9 @@ class GamePanel(QWidget):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.player_top = QLabel("?")
-        self.player_bottom = QLabel("?")
-        self.board_image = QLabel()
+        self.player_top_widget = QLabel("?")
+        self.player_bottom_widget = QLabel("?")
+        self.board_image_widget = QLabel()
 
         self.move_notation_widget = QLabel("-")
         self.move_cost_widget = QLabel("-")
@@ -21,13 +20,10 @@ class GamePanel(QWidget):
         player_font = QFont()
         player_font.setBold(True)
         player_font.setPointSize(14)
-        self.player_top.setFont(player_font)
-        self.player_bottom.setFont(player_font)
+        self.player_top_widget.setFont(player_font)
+        self.player_bottom_widget.setFont(player_font)
 
-        board_layout = QVBoxLayout()
-        board_layout.addWidget(self.player_top)
-        board_layout.addWidget(self.board_image)
-        board_layout.addWidget(self.player_bottom)
+        board_layout = self.create_board_layout()
 
         eval_layout = self.create_eval_layout()
 
@@ -54,18 +50,25 @@ class GamePanel(QWidget):
 
         pixmap = QPixmap()
         pixmap.loadFromData(cairosvg.svg2png(bytestring=svg.encode()))
-        self.board_image.setPixmap(pixmap)
+        self.board_image_widget.setPixmap(pixmap)
 
         if orientation:
-            self.player_top.setText(black_player)
-            self.player_bottom.setText(white_player)
+            self.player_top_widget.setText(black_player)
+            self.player_bottom_widget.setText(white_player)
         else:
-            self.player_top.setText(white_player)
-            self.player_bottom.setText(black_player)
+            self.player_top_widget.setText(white_player)
+            self.player_bottom_widget.setText(black_player)
 
         self.move_notation_widget.setText(str(notation))
         self.move_cost_widget.setText(str(cost))
         self.evaluation_widget.setText(str(evaluation))
+
+    def create_board_layout(self):
+        layout = QVBoxLayout()
+        layout.addWidget(self.player_top_widget)
+        layout.addWidget(self.board_image_widget)
+        layout.addWidget(self.player_bottom_widget)
+        return layout
 
     def create_eval_layout(self):
         tag_header_font = QFont()

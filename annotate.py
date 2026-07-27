@@ -24,13 +24,13 @@ from PyQt6.QtWidgets import (QApplication,
 # noinspection PyUnresolvedReferences
 
 def run_annotate():
+
     class Window(QWidget):
 
         def __init__(self):
             super().__init__()
 
             self.setWindowTitle("ChessMoves: Annotate")
-            # self.setFixedSize(1000, 800)
             self.resize(1000, 800)
             self.setStyleSheet("""
             QWidget {
@@ -219,13 +219,6 @@ def run_annotate():
 
                 self.game.board.pop()
                 self.update_board()
-
-        def create_board_layout(self):
-            layout = QVBoxLayout()
-            layout.addWidget(self.player_top_widget)
-            layout.addWidget(self.image_board_widget)
-            layout.addWidget(self.player_bottom_widget)
-            return layout
 
         def create_button_layout(self):
             width_small = 50

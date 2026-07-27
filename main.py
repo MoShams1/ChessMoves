@@ -14,7 +14,6 @@ class Window(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves")
-        # self.setFixedSize(1000, 800)
         self.resize(300, 130)
         self.setStyleSheet("""
             QWidget {
