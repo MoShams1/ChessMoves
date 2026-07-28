@@ -46,13 +46,9 @@ tag_source = {
     ],
 
     "DIAGNOSIS_cb": [
-        "Stress",
-        "Fatigue",
         "Time Trouble",
         "Mis-Evaluation",
-        "Mis-Calculation",
-        "Overconfidence",
-        "Underconfidence"
+        "Mis-Calculation"
     ]
 
 }

@@ -415,8 +415,8 @@ def run_annotate():
             # lichess_url = QApplication.clipboard().text()
             # lichess_url = "https://lichess.org/HbXe1F1j/black"
             # lichess_url = "https://lichess.org/study/bxPkXZHd/3Wlyste3"
-            # lichess_url = "https://lichess.org/study/bxPkXZHd/O92Yirup"
-            lichess_url = "https://lichess.org/study/bxPkXZHd/pXoT8cCr"
+            lichess_url = "https://lichess.org/study/bxPkXZHd/O92Yirup"
+            # lichess_url = "https://lichess.org/study/bxPkXZHd/pXoT8cCr"
 
             if "study" in lichess_url:
                 self.lichess_id = lichess_url.split("study/")[1]
@@ -512,7 +512,7 @@ def run_annotate():
         def reset_game_tags(self):
             self.game.tag_move_list = [[] for _ in range(len(self.game.moves))]
             self.clear_tags_in_ui()
-            self.show_message("Tags reset")
+            self.show_message("Game tags reset")
 
         @staticmethod
         def close_db_connection(connection):
