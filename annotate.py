@@ -22,8 +22,8 @@ from PyQt6.QtWidgets import (QApplication,
                              QCheckBox,
                              QGraphicsOpacityEffect)
 
-def run_annotate():
 
+def run_annotate():
     class AnnotateWindow(QWidget):
 
         def __init__(self):
@@ -343,6 +343,17 @@ def run_annotate():
                         border-radius: 7px;
                     }
                 """)
+
+            elif "ERROR" in text:
+                label.setStyleSheet("""
+                    QLabel {
+                        color: #EC7A5A;
+                        background-color: rgb(40, 40, 40);
+                        padding: 5px;
+                        border-radius: 7px;
+                    }
+                """)
+
             else:
                 label.setStyleSheet("""
                     QLabel {
@@ -373,7 +384,7 @@ def run_annotate():
 
                 overlay.animation = animation
 
-            QTimer.singleShot(2000, fade_out)
+            QTimer.singleShot(3000, fade_out)
 
             # ///////////////////////////////////////////////////////////////////////
             # CREATE LAYOUTS
@@ -400,8 +411,13 @@ def run_annotate():
             self.rb_group.setExclusive(True)
 
         def load_game(self):
+
             # lichess_url = QApplication.clipboard().text()
-            lichess_url = "https://lichess.org/HbXe1F1j/black"
+            # lichess_url = "https://lichess.org/HbXe1F1j/black"
+            # lichess_url = "https://lichess.org/study/bxPkXZHd/3Wlyste3"
+            # lichess_url = "https://lichess.org/study/bxPkXZHd/O92Yirup"
+            lichess_url = "https://lichess.org/study/bxPkXZHd/pXoT8cCr"
+
             if "study" in lichess_url:
                 self.lichess_id = lichess_url.split("study/")[1]
                 req_game = requests.get(
@@ -413,6 +429,12 @@ def run_annotate():
                     f"https://lichess.org/game/export/{self.lichess_id}")
 
             self.game = Game(req_game)
+
+            if not self.game.eval_list:
+                self.show_message(
+                    "ERROR: Game not loaded\n"
+                    "Make sure the game is already analyzed")
+                return
 
             if self.game.black in player_names:
                 self.flip_flag = not self.flip_flag
@@ -586,6 +608,7 @@ def run_annotate():
             keyword = "[%eval"
 
             self.eval_list = []
+
             for i, part in enumerate(pgn_parts):
                 if part == keyword:
                     try:

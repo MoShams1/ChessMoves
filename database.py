@@ -43,7 +43,8 @@ def check_if_game_exists(cursor, lichess_id):
 
     result = cursor.fetchone()
 
-    return result[0]
+    if result:
+        return result[0]
 
 
 def save_game_to_db(cursor, lichess_id, date, white, black):
