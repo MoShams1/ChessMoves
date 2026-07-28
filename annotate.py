@@ -216,6 +216,8 @@ def run_annotate():
                     self.move_cost_widget.setText("-")
                     self.eval_widget.setText("-")
 
+                self.move_obj = self.game.move_obj_list[
+                    self.current_move_num - 1]
                 self.game.board.pop()
                 self.update_board()
 
