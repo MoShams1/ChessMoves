@@ -6,8 +6,9 @@ import requests
 import chess.pgn
 import chess.svg
 import database as db
-from game_panel import GamePanel
 from tags import tag_source
+from game_panel import GamePanel
+from personal_info import lichess_study_token, player_names
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (QApplication,
@@ -20,8 +21,6 @@ from PyQt6.QtWidgets import (QApplication,
                              QRadioButton,
                              QCheckBox,
                              QGraphicsOpacityEffect)
-
-# noinspection PyUnresolvedReferences
 
 def run_annotate():
 
@@ -368,6 +367,7 @@ def run_annotate():
                 animation.setStartValue(effect.opacity())
                 animation.setEndValue(0)
                 animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+                # noinspection PyUnresolvedReferences
                 animation.finished.connect(overlay.deleteLater)
                 animation.start()
 
@@ -400,16 +400,13 @@ def run_annotate():
             self.rb_group.setExclusive(True)
 
         def load_game(self):
-
             # lichess_url = QApplication.clipboard().text()
-            # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
             lichess_url = "https://lichess.org/HbXe1F1j/black"
             if "study" in lichess_url:
-                my_token = "lip_XB7WRyKqvpEnfFW9iHox"
                 self.lichess_id = lichess_url.split("study/")[1]
                 req_game = requests.get(
                     f"https://lichess.org/api/study/{self.lichess_id}.pgn",
-                    headers={"Authorization": f"Bearer {my_token}"})
+                    headers={"Authorization": f"Bearer {lichess_study_token}"})
             else:
                 self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
                 req_game = requests.get(
@@ -417,8 +414,7 @@ def run_annotate():
 
             self.game = Game(req_game)
 
-            if self.game.black in \
-                    ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
+            if self.game.black in player_names:
                 self.flip_flag = not self.flip_flag
 
             self.update_board()
