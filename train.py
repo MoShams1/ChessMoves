@@ -4,6 +4,7 @@ import chess.pgn
 import chess.svg
 import database as db
 from game_panel import GamePanel
+from personal_info import player_names
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (QApplication,
@@ -141,7 +142,7 @@ def run_train():
                 board=chess.Board(self.move_row["fen_before"]),
                 white_player="self.game.white",
                 black_player="self.game.black",
-                orientation=True,
+                orientation=self.flip_flag,
                 last_move=chess.Move.from_uci(self.move_row["last_move_uci"]),
                 notation="self.move_notation_widget.text()",
                 cost=1,
@@ -390,6 +391,10 @@ def run_train():
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
             move_row = db.read_random_position_from_db(cursor)
+            game_row = db.read_game_from_move_id(cursor, move_row["game_id"])
+            if game_row["black"] in player_names:
+                self.flip_flag = not self.flip_flag
+
             return move_row
 
         #     # lichess_url = QApplication.clipboard().text()

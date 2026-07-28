@@ -9,9 +9,10 @@ GENERAL
 ANNOTATE
 
 [] add "clear" button to clear tags of current move
-[done] *** save last move object for train window to show last move before the tagged move
-[] *** update last move when going backward
-[] *** correct board alignment during train
+[done] *** correct board alignment during train
+[] show players name and position infor
+[] make the show conditioned to "reveal" button click
+[] add flip function to the position
 
 ------------------------------------
 TRAIN

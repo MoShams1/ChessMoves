@@ -157,5 +157,12 @@ def read_random_position_from_db(cursor):
         ORDER BY RANDOM()
         LIMIT 1
     """)
+    return cursor.fetchone()
 
+def read_game_from_move_id(cursor, game_id):
+    cursor.execute("""
+    SELECT *
+    FROM games
+    WHERE game_id = ?
+    """, (game_id,))
     return cursor.fetchone()
