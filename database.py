@@ -15,6 +15,7 @@ def initialize_database(cursor):
             move_notation TEXT,
             move_cost REAL,     
             fen_before TEXT,
+            last_move_uci TEXT,
             times_practiced DEFAULT 0,
             learning_idx DEFAULT 0,
             UNIQUE(game_id, move_num) 
@@ -75,17 +76,19 @@ def save_game_to_db(cursor, lichess_id, date, white, black):
 
 
 def save_moves_to_db(cursor, game_id, move_num, move_notation, move_cost,
-                     fen_before):
+                     fen_before, last_move_uci):
     cursor.execute("""
         INSERT INTO moves
-        (game_id, move_num, move_notation, move_cost, fen_before)
-        VALUES(?, ?, ?, ?, ?)
+        (game_id, move_num, move_notation, move_cost, fen_before, 
+        last_move_uci)
+        VALUES(?, ?, ?, ?, ?, ?)
         """, (
         game_id,
         move_num,
         move_notation,
         move_cost,
-        fen_before
+        fen_before,
+        last_move_uci
     ))
     cursor.execute("""
         SELECT move_id FROM moves
@@ -134,15 +137,25 @@ def save_moves_tags_to_db(cursor, move_id, tag_id):
 
 def read_tags_from_db(cursor, game_id, tag_move_list):
     cursor.execute("""
-        SELECT moves.move_num, tags.tag
+        SELECT move_num, tags.tag
         FROM moves
         JOIN moves_tags ON moves.move_id = moves_tags.move_id
         JOIN tags ON moves_tags.tag_id = tags.tag_id
         WHERE moves.game_id = ?
-        ORDER BY moves.move_num
+        ORDER BY move_num
         """, (game_id,))
 
     for move_num, tag in cursor.fetchall():
         tag_move_list[move_num - 1].append(tag)
 
     return tag_move_list
+
+def read_random_position_from_db(cursor):
+    cursor.execute("""
+        SELECT *
+        FROM moves
+        ORDER BY RANDOM()
+        LIMIT 1
+    """)
+
+    return cursor.fetchone()

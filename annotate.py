@@ -188,7 +188,7 @@ def run_annotate():
                 if self.current_move_num > 0:
                     self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
                                              move_nr=self.current_move_num)
-                self.game.fen_list[
+                self.game.fen_before_list[
                     self.current_move_num] = self.game.board.fen()
                 self.current_move_num += 1
                 self.clear_tags_in_ui()
@@ -493,7 +493,9 @@ def run_annotate():
                         move_num=imove + 1,
                         move_notation=self.move_notation_widget.text(),
                         move_cost=self.game.cost_list[imove],
-                        fen_before=self.game.fen_list[imove])
+                        fen_before=self.game.fen_before_list[imove],
+                        last_move_uci=self.game.move_obj_list[imove - 1].uci()
+                    )
 
                     for tag in tag_list:
                         tag_id = db.save_tags_to_db(cursor=cursor,
@@ -596,9 +598,9 @@ def run_annotate():
 
             self.move_obj_list = list(self.parsed_game.mainline_moves())
             self.moves = []
-            for pushable_move in self.move_obj_list:
-                self.moves.append(board.san(pushable_move))
-                board.push(pushable_move)
+            for move_obj in self.move_obj_list:
+                self.moves.append(board.san(move_obj))
+                board.push(move_obj)
 
             # ----------------------------------------------------------------
             # extract engine evaluation
@@ -665,7 +667,7 @@ def run_annotate():
             self.tag_move_list = [[] for _ in range(len(self.moves))]
 
             # create a preallocated list to store fen for each move
-            self.fen_list = [[] for _ in range(len(self.moves))]
+            self.fen_before_list = [[] for _ in range(len(self.moves))]
 
     window = AnnotateWindow()
     window.show()

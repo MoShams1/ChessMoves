@@ -1,13 +1,9 @@
-import io
-import os
 import chess
 import sqlite3
-import requests
 import chess.pgn
 import chess.svg
 import database as db
 from game_panel import GamePanel
-from tags import tag_source
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont
 from PyQt6.QtWidgets import (QApplication,
@@ -16,9 +12,6 @@ from PyQt6.QtWidgets import (QApplication,
                              QPushButton,
                              QVBoxLayout,
                              QHBoxLayout,
-                             QButtonGroup,
-                             QRadioButton,
-                             QCheckBox,
                              QGraphicsOpacityEffect)
 
 # noinspection PyUnresolvedReferences
@@ -109,51 +102,54 @@ def run_train():
             # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
 
-        # def update_board(self):
-        #
-        #     if self.current_move_num > 0:
-        #
-        #         if self.current_move_num % 2 == 1:
-        #             prefix = f"{(self.current_move_num + 1) // 2}. "
-        #
-        #         else:
-        #             prefix = f"{self.current_move_num // 2}... "
-        #
-        #         self.move_notation_widget.setText(
-        #             f"{prefix}{self.game.moves[self.current_move_num - 1]}")
-        #
-        #         self.move_cost_widget.setText(
-        #             f"{self.game.cost_list[self.current_move_num - 1]}")
-        #
-        #         current_eval = self.game.eval_list[self.current_move_num - 1]
-        #
-        #         if isinstance(current_eval, float):
-        #             if not (current_eval < 0):
-        #                 self.eval_widget.setText(f"+{current_eval}")
-        #             else:
-        #                 self.eval_widget.setText(f"{current_eval}")
-        #
-        #         if isinstance(current_eval, str):
-        #             self.eval_widget.setText(current_eval)
-        #
-        #     else:
-        #         self.move_notation_widget.setText("-")
-        #         self.move_cost_widget.setText("-")
-        #         self.eval_widget.setText("-")
-        #
-        #     self.game_panel_widget.show_position(
-        #         board=self.game.board,
-        #         white_player=self.game.white,
-        #         black_player=self.game.black,
-        #         orientation=self.flip_flag,
-        #         last_move=self.move_obj,
-        #         notation=self.move_notation_widget.text(),
-        #         cost=self.move_cost_widget.text(),
-        #         evaluation=self.eval_widget.text(),
-        #     )
-        #
-        #     if self.current_move_num > 0:
-        #         self.game_panel_widget.set_move_cost_color()
+            self.move_row = self.load_position()
+            self.update_board()
+
+        def update_board(self):
+
+            # if self.current_move_num > 0:
+            #
+            #     if self.current_move_num % 2 == 1:
+            #         prefix = f"{(self.current_move_num + 1) // 2}. "
+            #
+            #     else:
+            #         prefix = f"{self.current_move_num // 2}... "
+            #
+            #     self.move_notation_widget.setText(
+            #         f"{prefix}{self.game.moves[self.current_move_num - 1]}")
+            #
+            #     self.move_cost_widget.setText(
+            #         f"{self.game.cost_list[self.current_move_num - 1]}")
+            #
+            #     current_eval = self.game.eval_list[self.current_move_num - 1]
+            #
+            #     if isinstance(current_eval, float):
+            #         if not (current_eval < 0):
+            #             self.eval_widget.setText(f"+{current_eval}")
+            #         else:
+            #             self.eval_widget.setText(f"{current_eval}")
+            #
+            #     if isinstance(current_eval, str):
+            #         self.eval_widget.setText(current_eval)
+            #
+            # else:
+            #     self.move_notation_widget.setText("-")
+            #     self.move_cost_widget.setText("-")
+            #     self.eval_widget.setText("-")
+
+            self.game_panel_widget.show_position(
+                board=chess.Board(self.move_row["fen_before"]),
+                white_player="self.game.white",
+                black_player="self.game.black",
+                orientation=True,
+                last_move=chess.Move.from_uci(self.move_row["last_move_uci"]),
+                notation="self.move_notation_widget.text()",
+                cost=1,
+                evaluation=1,
+            )
+
+            # if self.current_move_num > 0:
+            #     self.game_panel_widget.set_move_cost_color()
 
         # def next_move(self):
         #     if (
@@ -389,8 +385,13 @@ def run_train():
         #         value.setChecked(False)
         #     self.rb_group.setExclusive(True)
 
-        # def load_game(self):
-        #
+        def load_position(self):
+            connection = sqlite3.connect("chess_moves.db")
+            connection.row_factory = sqlite3.Row
+            cursor = connection.cursor()
+            move_row = db.read_random_position_from_db(cursor)
+            return move_row
+
         #     # lichess_url = QApplication.clipboard().text()
         #     # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
         #     lichess_url = "https://lichess.org/HbXe1F1j/black"

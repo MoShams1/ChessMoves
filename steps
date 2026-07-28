@@ -8,12 +8,17 @@ GENERAL
 ------------------------------------
 ANNOTATE
 
-
+[] add "clear" button to clear tags of current move
+[done] *** save last move object for train window to show last move before the tagged move
+[] *** update last move when going backward
+[] *** correct board alignment during train
 
 ------------------------------------
 TRAIN
 
-[done] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
+[] show a position randomly
+
+[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
 [] "URL" button copies the url (needs to be created from lichess_id?)
 [] "FEN" button copies FEN of the position
 [done] "CLOSE" button saves the response in memory into db and closes the train window
