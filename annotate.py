@@ -281,10 +281,10 @@ def run_annotate():
 
                 layout_block = QVBoxLayout()
                 layout_block.addSpacing(20)
-                if not (header == ""):
-                    header_widget = QLabel(header)
-                    header_widget.setFont(self.tag_header_font)
-                    layout_block.addWidget(header_widget)
+
+                header_widget = QLabel(header)
+                header_widget.setFont(self.tag_header_font)
+                layout_block.addWidget(header_widget)
 
                 if box_type == "cb":
                     for option in options:
@@ -303,16 +303,18 @@ def run_annotate():
                     return
 
                 if (
+                        header == "GENERAL" or
                         header == "GAME PHASE" or
-                        header == "MISSED RESPONSE" or
-                        header == "DIAGNOSIS"):
+                        header == "DIAGNOSIS" or
+                        header == "MISSED RESPONSE"):
                     layout_left.addLayout(layout_block)
+                    layout_left.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
                 if (
                         header == "TACTICAL THEME" or
-                        header == "POSITIONAL DISADVANTAGE" or
-                        header == ""):
+                        header == "POSITIONAL THEME"):
                     layout_right.addLayout(layout_block)
+                    layout_right.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
             layout.addLayout(layout_left)
             layout.addSpacing(20)
@@ -431,20 +433,20 @@ def run_annotate():
                     cursor,
                     self.lichess_id)
 
-            if self.existing_game_id:
-                self.show_message(
-                    "Game loaded\n"
-                    "WARNING: Game already exists in database!")
-                self.game.tag_move_list = db.read_tags_from_db(
-                    cursor,
-                    self.existing_game_id,
-                    self.game.tag_move_list)
-            else:
-                self.show_message("Game loaded")
-                print("Game Loaded!!")
+                if self.existing_game_id:
+                    self.show_message(
+                        "Game loaded\n"
+                        "WARNING: Game already exists in database!")
+                    self.game.tag_move_list = db.read_tags_from_db(
+                        cursor,
+                        self.existing_game_id,
+                        self.game.tag_move_list)
+                else:
+                    self.show_message("Game loaded")
+                    print("Game Loaded!!")
 
-            self.game_loaded_flag = True
-            self.close_db_connection(conn)
+                self.game_loaded_flag = True
+                self.close_db_connection(conn)
 
         def save_analysis_to_db(self):
 

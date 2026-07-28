@@ -28,7 +28,8 @@ class GamePanel(QWidget):
         eval_layout = self.create_eval_layout()
 
         master_layout = QVBoxLayout(self)
-        master_layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+        master_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
+                                   Qt.AlignmentFlag.AlignHCenter)
         master_layout.addLayout(board_layout)
         master_layout.addLayout(eval_layout)
 

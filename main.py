@@ -48,6 +48,7 @@ class MasterWindow(QWidget):
         # button connections
 
         self.button_widgets["Annotate"].clicked.connect(self.open_annotate)
+        self.button_widgets["Train"].clicked.connect(self.open_train)
         self.button_widgets["Quit"].clicked.connect(self.close)
 
     def create_button_layout(self):

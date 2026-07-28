@@ -1,5 +1,11 @@
 tag_source = {
 
+    "GENERAL_cb": [
+        "Missed Opportunity",
+        "Granted Opportunity",
+        "Unclear Evaluation"
+    ],
+
     "GAME PHASE_rb": [
         "Opening",
         "Middlegame",
@@ -12,7 +18,8 @@ tag_source = {
         "Threat",
         "Protect",
         "Block",
-        "Escape"
+        "Escape",
+        "Tactics"
     ],
 
     "TACTICAL THEME_cb": [
@@ -20,36 +27,32 @@ tag_source = {
         "Fork",
         "X-Ray",
         "Skewer",
+        "Overloading",
         "Forced Mate",
         "Zwischenzug",
         "Double Attack",
         "Trapped Piece",
         "Discovered Attack",
-        "Removal of Defender",
-        "Overworked Defender"
+        "Removal of Defender"
     ],
 
-    "POSITIONAL DISADVANTAGE_cb": [
-        "Spatial Control Loss",
-        "Tempo/Initiative Loss",
-        "Allowed Passed Pawn",
-        "Poor Exchange Decision",
-        "Compromised King Safety",
-        "Pawn Structure Weakness"
+    "POSITIONAL THEME_cb": [
+        "King Safety",
+        "Passed Pawn",
+        "Spatial Control",
+        "Pawn Structure",
+        "Tempo/Initiative",
+        "Exchange Decision"
     ],
 
     "DIAGNOSIS_cb": [
-        "Fatigue",
         "Stress",
+        "Fatigue",
         "Time Trouble",
-	"Failed Tactics",
         "Mis-Evaluation",
         "Mis-Calculation",
         "Overconfidence",
         "Underconfidence"
-    ],
-
-    "_cb": [
-        "Unclear engine evaluation"
     ]
+
 }
