@@ -103,7 +103,7 @@ def run_train():
             # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
 
-            self.move_row = self.load_position()
+            self.game_row, self.move_row = self.load_position()
             self.update_board()
 
         def update_board(self):
@@ -140,17 +140,15 @@ def run_train():
 
             self.game_panel_widget.show_position(
                 board=chess.Board(self.move_row["fen_before"]),
-                white_player="self.game.white",
-                black_player="self.game.black",
+                white_player=self.game_row["white"],
+                black_player=self.game_row["black"],
                 orientation=self.flip_flag,
                 last_move=chess.Move.from_uci(self.move_row["last_move_uci"]),
-                notation="self.move_notation_widget.text()",
-                cost=1,
+                notation=self.move_row["move_notation"],
+                cost=self.move_row["move_cost"],
                 evaluation=1,
             )
-
-            # if self.current_move_num > 0:
-            #     self.game_panel_widget.set_move_cost_color()
+            self.game_panel_widget.set_move_cost_color()
 
         # def next_move(self):
         #     if (
@@ -395,7 +393,7 @@ def run_train():
             if game_row["black"] in player_names:
                 self.flip_flag = not self.flip_flag
 
-            return move_row
+            return game_row, move_row
 
         #     # lichess_url = QApplication.clipboard().text()
         #     # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"

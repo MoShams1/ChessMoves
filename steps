@@ -11,12 +11,15 @@ ANNOTATE
 [] add "clear" button to clear tags of current move
 [] allow user to add comments (comments section) w/ qplaintextedit
 [] allow user to add questions to be shown during traininn (questions section)
+[] >>> save position_eval_before
 
 ------------------------------------
 TRAIN
 
-[] >>> add flip function to the position
-[] show players name and position info
+[done] show players name
+[done] show move cost
+[done] adapt move cost color
+
 [] make the show conditioned to "reveal" button click
 [] show stored questions next to the position
 [] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx and comments
