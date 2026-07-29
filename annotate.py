@@ -127,6 +127,7 @@ def run_annotate():
                     self.game.board.fen(),
                     "Position copied to clipboard"))
 
+            self.button_widgets["Clear"].clicked.connect(self.clear_tags_in_ui)
             self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
 
@@ -211,13 +212,15 @@ def run_annotate():
                 self.clear_tags_in_ui()
                 self.load_tags_to_ui(move_nr=self.current_move_num)
 
+                self.move_obj = self.game.move_obj_list[
+                    self.current_move_num - 1]
+
                 if self.current_move_num == 0:
                     self.move_notation_widget.setText("-")
                     self.move_cost_widget.setText("-")
                     self.eval_widget.setText("-")
+                    self.move_obj = None
 
-                self.move_obj = self.game.move_obj_list[
-                    self.current_move_num - 1]
                 self.game.board.pop()
                 self.update_board()
 
@@ -243,6 +246,9 @@ def run_annotate():
                 "FEN": {"tooltip": "Copy position FEN (N)",
                         "width": width_small,
                         "spacing": spacing_large},
+                "Clear": {"tooltip": "Clear move tags (C)",
+                          "width": width_large,
+                          "spacing": spacing_small},
                 "Reset": {"tooltip": "Reset game tags (R)",
                           "width": width_large,
                           "spacing": spacing_small},
@@ -443,8 +449,8 @@ def run_annotate():
 
             self.update_board()
 
-            cursor = None
-            conn = None
+            # cursor = None
+            # conn = None
             db_file_name = "chess_moves.db"
             if os.path.exists(db_file_name):
                 conn = sqlite3.connect(db_file_name)
@@ -548,7 +554,6 @@ def run_annotate():
             elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
                 self.load_game()
 
-
             elif self.game_loaded_flag and event.key() == Qt.Key.Key_U:
                 self.copy_to_clipboard(self.game.url,
                                        "Game URL copied to clipboard")
@@ -561,12 +566,15 @@ def run_annotate():
                 self.copy_to_clipboard(self.game.board.fen(),
                                        "Position copied to clipboard")
 
-
             elif event.key() == Qt.Key.Key_S:
                 self.save_analysis_to_db()
 
             elif event.key() == Qt.Key.Key_R:
                 self.reset_game_tags()
+
+            elif event.key() == Qt.Key.Key_C:
+                self.clear_tags_in_ui()
+                self.show_message("Move tags cleared")
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)
