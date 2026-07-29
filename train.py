@@ -508,9 +508,9 @@ def run_train():
         #     # elif event.key() == Qt.Key.Key_Left:
         #     #     self.previous_move()
         #
-        #     elif event.key() == Qt.Key.Key_F:
-        #         self.flip_flag = not self.flip_flag
-        #         # self.update_board()
+            elif event.key() == Qt.Key.Key_F:
+                self.flip_flag = not self.flip_flag
+                self.update_board()
         #
         #     # elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
         #     #     self.load_game()

@@ -9,32 +9,29 @@ GENERAL
 ANNOTATE
 
 [] add "clear" button to clear tags of current move
-[done] *** correct board alignment during train
-[] show players name and position infor
-[] make the show conditioned to "reveal" button click
-[] add flip function to the position
+[] allow user to add comments (comments section) w/ qplaintextedit
+[] allow user to add questions to be shown during traininn (questions section)
 
 ------------------------------------
 TRAIN
 
-[] show a position randomly
-
-[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx
+[] >>> add flip function to the position
+[] show players name and position info
+[] make the show conditioned to "reveal" button click
+[] show stored questions next to the position
+[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx and comments
 [] "URL" button copies the url (needs to be created from lichess_id?)
 [] "FEN" button copies FEN of the position
-[done] "CLOSE" button saves the response in memory into db and closes the train window
 
-[] Show:
-
-Did you find a good move? yes, no, skip
+Can you answer the question(s)?
 yes	-> learning_idx +1
 no 	-> learning_idx -1
 skip 	-> learning_idx =
 
-[] right arrow key saves the response into memory and shows next position
+[] next position key saves the response into memory and shows next position
 [] add  button that saves from memory to db and quits
 
-[] positions are selected randomly, but moves with lower learning_idx are more probable to appear
+[] positions are selected randomly, but moves with lower learning_idx are more likely to appear
 
 ------------------------------------
 REPORT
@@ -42,5 +39,5 @@ REPORT
 [] sort all tags within their category based on frequency
 [] pychart of the mistake parental categories
 
-[] evolution of the pychart as a line graph
+[] evolution of the pi-chart as a line graph
 
