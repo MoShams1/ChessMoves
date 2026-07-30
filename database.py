@@ -15,7 +15,10 @@ def initialize_database(cursor):
             move_notation TEXT,
             move_cost REAL,     
             fen_before TEXT,
+            eval_before REAL,
             last_move_uci TEXT,
+            comments TEXT DEFAULT '',
+            questions TEXT DEFAULT '',            
             times_practiced DEFAULT 0,
             learning_idx DEFAULT 0,
             UNIQUE(game_id, move_num) 
@@ -76,19 +79,23 @@ def save_game_to_db(cursor, lichess_id, date, white, black):
 
 
 def save_moves_to_db(cursor, game_id, move_num, move_notation, move_cost,
-                     fen_before, last_move_uci):
+                     fen_before, eval_before, last_move_uci, comments,
+                     questions):
     cursor.execute("""
         INSERT INTO moves
         (game_id, move_num, move_notation, move_cost, fen_before, 
-        last_move_uci)
-        VALUES(?, ?, ?, ?, ?, ?)
+        eval_before, last_move_uci, comments, questions)
+        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
         """, (
         game_id,
         move_num,
         move_notation,
         move_cost,
         fen_before,
-        last_move_uci
+        eval_before,
+        last_move_uci,
+        comments,
+        questions
     ))
     cursor.execute("""
         SELECT move_id FROM moves

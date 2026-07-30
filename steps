@@ -6,32 +6,27 @@ GENERAL
 [] cleanup the database file name variables
 
 ------------------------------------
-ANNOTATE
+ANNOT0ATE
 
-
-[done] allow user to add comments (comments section) w/ qplaintextedit
-[done] allow user to add questions to be shown during traininn (questions section)
-
-[done] correct focus settings
-
-[done] redesign message layout
-
-[] save comments and questions in db
-[] save position_eval_before
+[done] save comments and questions in db
+[done] save position_eval_before
 
 ------------------------------------
 TRAIN
 
+[done] >>> Can you answer the question(s)?
+	yes	-> learning_idx +1
+	no 	-> learning_idx -1
+	skip 	-> learning_idx =
+
+
+[done] show stored questions
+[done] show stored comments
+
 [] make the show conditioned to "reveal" button click
-[] show stored questions next to the position
-[] "REVEAL" button reveals the game panel fully plus times_shown and learning_idx and comments
+
 [] "URL" button copies the url (needs to be created from lichess_id?)
 [] "FEN" button copies FEN of the position
-
-Can you answer the question(s)?
-yes	-> learning_idx +1
-no 	-> learning_idx -1
-skip 	-> learning_idx =
 
 [] next position key saves the response into memory and shows next position
 [] add  button that saves from memory to db and quits

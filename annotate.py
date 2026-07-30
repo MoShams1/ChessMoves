@@ -525,7 +525,10 @@ def run_annotate():
                         move_notation=self.move_notation_widget.text(),
                         move_cost=self.game.cost_list[imove],
                         fen_before=self.game.fen_before_list[imove],
-                        last_move_uci=self.game.move_obj_list[imove - 1].uci()
+                        eval_before=self.game.eval_list[imove - 1],
+                        last_move_uci=self.game.move_obj_list[imove - 1].uci(),
+                        comments=self.comment_widget.toPlainText(),
+                        questions=self.question_widget.toPlainText(),
                     )
 
                     for tag in tag_list:
