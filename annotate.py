@@ -429,17 +429,31 @@ def run_annotate():
 
         def save_tags_to_memory(self, tag_list, move_nr):
             self.game.tag_move_list[move_nr - 1] = tag_list
+            self.game.comments_list[move_nr - 1] = (
+                self.comment_widget.toPlainText())
+            self.game.questions_list[move_nr - 1] = (
+                self.question_widget.toPlainText())
+            print(move_nr)
+            print(self.game.questions_list)
 
         def load_tags_to_ui(self, move_nr):
             tag_list = self.game.tag_move_list[move_nr - 1]
             for tag in tag_list:
                 self.tag_widgets[tag].setChecked(True)
+            print(move_nr)
+            print(self.game.comments_list[move_nr])
+            self.comment_widget.setPlainText(self.game.comments_list[
+                                                 move_nr - 1])
+            self.question_widget.setPlainText(self.game.questions_list[
+                                                  move_nr - 1])
 
         def clear_tags_in_ui(self):
             self.rb_group.setExclusive(False)
             for value in self.tag_widgets.values():
                 value.setChecked(False)
             self.rb_group.setExclusive(True)
+            self.comment_widget.clear()
+            self.question_widget.clear()
 
         def load_game(self):
 
@@ -715,6 +729,12 @@ def run_annotate():
 
             # create a preallocated list to store fen for each move
             self.fen_before_list = [[] for _ in range(len(self.moves))]
+
+            # create a preallocated list to store comments
+            self.comments_list = ["" for _ in range(len(self.moves))]
+
+            # create a preallocated list to store questions
+            self.questions_list = ["" for _ in range(len(self.moves))]
 
     window = AnnotateWindow()
     window.show()
