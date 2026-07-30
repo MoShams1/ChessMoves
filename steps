@@ -8,20 +8,11 @@ GENERAL
 ------------------------------------
 ANNOT0ATE
 
-[done] save comments and questions in db
-[done] save position_eval_before
-
 ------------------------------------
 TRAIN
 
-[done] >>> Can you answer the question(s)?
-	yes	-> learning_idx +1
-	no 	-> learning_idx -1
-	skip 	-> learning_idx =
-
-
-[done] show stored questions
-[done] show stored comments
+[done] >>> add label: Could you answer the question(s) above?
+[] >>> edit the eval_before header (from eval to eval before or some other ways)
 
 [] make the show conditioned to "reveal" button click
 

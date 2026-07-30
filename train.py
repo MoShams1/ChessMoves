@@ -74,6 +74,8 @@ def run_train():
             right_layout.addWidget(QLabel("COMMENT(S):"))
             comments_value_widget = QLabel()
             right_layout.addWidget(comments_value_widget)
+            right_layout.addWidget(QLabel("Could you answer the question(s) "
+                                          "above?"))
             right_layout.addLayout(right_button_layout)
 
             master_layout_top = QHBoxLayout()
@@ -241,6 +243,7 @@ def run_train():
             spacing_small = -10
             spacing_large = 15
             layout = QHBoxLayout()
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
             buttons = {
                 "Yes": {"tooltip": "Yes, I got this (Y)",
                         "width": width_small,
