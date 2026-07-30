@@ -55,7 +55,7 @@ def run_train():
             # self.rb_group = QButtonGroup()
             # self.tag_widgets = {}
 
-            self.game_panel_widget = GamePanel()
+            self.game_panel_widget = GamePanel(mode="train")
 
             self.message_font = QFont()
             self.message_font.setPointSize(10)

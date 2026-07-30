@@ -6,8 +6,10 @@ from PyQt6.QtWidgets import QLabel, QHBoxLayout, QVBoxLayout, QWidget
 
 
 class GamePanel(QWidget):
-    def __init__(self, parent=None):
+    def __init__(self, mode, parent=None):
         super().__init__(parent)
+
+        self.mode = mode
 
         self.player_top_widget = QLabel("?")
         self.player_bottom_widget = QLabel("?")
@@ -87,13 +89,23 @@ class GamePanel(QWidget):
         eval_label = QLabel("Evaluation:")
         eval_label.setFont(tag_header_font)
 
-        layout_title.addWidget(move_label)
-        layout_title.addWidget(cost_label)
-        layout_title.addWidget(eval_label)
+        if self.mode == "annotate":
+            layout_title.addWidget(move_label)
+            layout_title.addWidget(cost_label)
+            layout_title.addWidget(eval_label)
 
-        layout_value.addWidget(self.move_notation_widget)
-        layout_value.addWidget(self.move_cost_widget)
-        layout_value.addWidget(self.evaluation_widget)
+            layout_value.addWidget(self.move_notation_widget)
+            layout_value.addWidget(self.move_cost_widget)
+            layout_value.addWidget(self.evaluation_widget)
+
+        elif self.mode == "train":
+            layout_title.addWidget(eval_label)
+            layout_title.addWidget(move_label)
+            layout_title.addWidget(cost_label)
+
+            layout_value.addWidget(self.evaluation_widget)
+            layout_value.addWidget(self.move_notation_widget)
+            layout_value.addWidget(self.move_cost_widget)
 
         layout.addLayout(layout_title)
         layout.addSpacing(10)

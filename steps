@@ -7,12 +7,13 @@ GENERAL
 
 ------------------------------------
 ANNOT0ATE
+[] >>> clean text boxes when scrolling across moves
 
 ------------------------------------
 TRAIN
 
-[done] >>> add label: Could you answer the question(s) above?
-[] >>> edit the eval_before header (from eval to eval before or some other ways)
+[done] edit the eval_before header (from eval to eval before or some other ways)
+[] >>> show saved tags
 
 [] make the show conditioned to "reveal" button click
 

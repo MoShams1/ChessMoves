@@ -68,7 +68,7 @@ def run_annotate():
             self.rb_group = QButtonGroup()
             self.tag_widgets = {}
 
-            self.game_panel_widget = GamePanel()
+            self.game_panel_widget = GamePanel(mode="annotate")
 
             # --------------------------------------------------------------------
             # create styles
