@@ -20,7 +20,7 @@ from PyQt6.QtWidgets import (QApplication,
                              QButtonGroup,
                              QRadioButton,
                              QCheckBox,
-                             QGraphicsOpacityEffect)
+                             QGraphicsOpacityEffect, QPlainTextEdit)
 
 
 def run_annotate():
@@ -30,7 +30,7 @@ def run_annotate():
             super().__init__()
 
             self.setWindowTitle("ChessMoves: Annotate")
-            self.resize(1000, 800)
+            self.resize(1000, 900)
             self.setStyleSheet("""
             QWidget {
             color: #D3D3D3;
@@ -47,6 +47,8 @@ def run_annotate():
             self.flip_flag = True
             self.current_move_num = 0
             self.game_loaded_flag = False
+            self.comment_widget = QPlainTextEdit()
+            self.question_widget = QPlainTextEdit()
 
             # --------------------------------------------------------------------
             # create widgets
@@ -81,9 +83,9 @@ def run_annotate():
             # create layouts
 
             tag_layout = self.create_tag_layout()
-
             button_layout = self.create_button_layout()
             button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            textbox_layout = self.create_textbox_layout()
 
             # --------------------------------------------------------------------
             # organize layouts
@@ -94,9 +96,11 @@ def run_annotate():
 
             master_layout = QVBoxLayout()
             master_layout.addLayout(master_layout_top)
+            master_layout.addLayout(textbox_layout)
             master_layout.addLayout(button_layout)
             master_layout.setContentsMargins(50, 50, 50, 50)
             self.setLayout(master_layout)
+            self.setFocus()
 
             # --------------------------------------------------------------------
 
@@ -327,6 +331,25 @@ def run_annotate():
             layout.addSpacing(20)
             layout.addLayout(layout_right)
 
+            return layout
+
+        def create_textbox_layout(self):
+            layout = QHBoxLayout()
+            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            layout.setContentsMargins(20, 20, 20, 20)
+
+            layout_left = QVBoxLayout()
+            layout_left.addWidget(QLabel("Comments:"))
+            layout_left.addWidget(self.comment_widget)
+            self.comment_widget.setFixedWidth(400)
+
+            layout_right = QVBoxLayout()
+            layout_right.addWidget(QLabel("Questions:"))
+            layout_right.addWidget(self.question_widget)
+            self.question_widget.setFixedWidth(400)
+
+            layout.addLayout(layout_left)
+            layout.addLayout(layout_right)
             return layout
 
         def show_message(self, text):
@@ -579,6 +602,17 @@ def run_annotate():
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)
             self.show_message(message)
+
+        def mousePressEvent(self, event):
+            widget = QApplication.widgetAt(event.globalPosition().toPoint())
+
+            if not isinstance(widget, QPlainTextEdit):
+                fw = QApplication.focusWidget()
+                if fw:
+                    fw.clearFocus()
+                self.setFocus()
+
+            super().mousePressEvent(event)
 
     class Game:
 

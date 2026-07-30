@@ -8,13 +8,15 @@ GENERAL
 ------------------------------------
 ANNOTATE
 
-[done] add "clear" function
-[done] add clear button
 
-[done] debug last played move when scrolling back to the first position
+[done] allow user to add comments (comments section) w/ qplaintextedit
+[done] allow user to add questions to be shown during traininn (questions section)
 
-[] allow user to add comments (comments section) w/ qplaintextedit
-[] allow user to add questions to be shown during traininn (questions section)
+[done] correct focus settings
+
+[done] redesign message layout
+
+[] save comments and questions in db
 [] save position_eval_before
 
 ------------------------------------

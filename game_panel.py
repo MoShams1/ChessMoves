@@ -40,7 +40,7 @@ class GamePanel(QWidget):
             orientation=orientation,
             lastmove=last_move,
             coordinates=True,
-            size=480,
+            size=400,
             colors={
                 "square light": "#B0AA98",
                 "square dark": "#827A68",
@@ -76,7 +76,8 @@ class GamePanel(QWidget):
         tag_header_font.setBold(True)
         layout = QHBoxLayout()
         layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-        layout.setContentsMargins(20, 30, 0, 15)
+        layout.setContentsMargins(20, 30, 0, 0)
+
         layout_title = QVBoxLayout()
         layout_value = QVBoxLayout()
         move_label = QLabel("Move:")
