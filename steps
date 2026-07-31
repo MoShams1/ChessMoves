@@ -14,14 +14,14 @@ TRAIN
 
 [] make the show conditioned to "reveal" button click
 
-[] "URL" button copies the url (needs to be created from lichess_id?)
-[] "FEN" button copies FEN of the position
-
 [] next position key saves the response into memory and shows next position
 [] add  button that saves from memory to db and quits
 
 [] positions are selected randomly, but moves with lower learning_idx are more likely to appear
 
+
+
+<<< NEXT PHASE >>>
 ------------------------------------
 REPORT
 

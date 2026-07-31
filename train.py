@@ -97,27 +97,16 @@ def run_train():
                 orientation=self.flip_flag,
             )
 
-            # self.button_widgets["Load"].clicked.connect(self.load_game)
-            # self.button_widgets["Save"].clicked.connect(
-            #     self.save_analysis_to_db)
-            #
-            # self.button_widgets["URL"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.url,
-            #         "Game URL copied to clipboard"))
-            # self.button_widgets["PGN"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.pgn,
-            #         "Game PGN copied to clipboard"))
-            # self.button_widgets["FEN"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.board.fen(),
-            #         "Position copied to clipboard"))
-            #
             # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
 
             self.game_row, self.move_row = self.load_position()
+            if "/" in self.game_row["lichess_id"]:
+                self.game_url = ("https://lichess.org/study/" +
+                                 self.game_row["lichess_id"])
+            else:
+                self.game_url = ("https://lichess.org/" +
+                                 self.game_row["lichess_id"])
             db_file_name = "chess_moves.db"
             conn = sqlite3.connect(db_file_name)
             cursor = conn.cursor()
@@ -127,6 +116,23 @@ def run_train():
             questions_value_widget.setText(self.move_row["questions"])
             comments_value_widget.setText(self.move_row["comments"])
             tags.setText("\n".join(f"#{tag}" for tag in self.tags))
+
+            # self.button_widgets["Load"].clicked.connect(self.load_game)
+            # self.button_widgets["Save"].clicked.connect(
+            #     self.save_analysis_to_db)
+            #
+            self.button_widgets["URL"].clicked.connect(
+                lambda: self.copy_to_clipboard(
+                    self.game_url,
+                    "Game URL copied to clipboard"))
+            # self.button_widgets["PGN"].clicked.connect(
+            #     lambda: self.copy_to_clipboard(
+            #         self.game.pgn,
+            #         "Game PGN copied to clipboard"))
+            self.button_widgets["FEN"].clicked.connect(
+                lambda: self.copy_to_clipboard(
+                    self.move_row["fen_before"],
+                    "Position copied to clipboard"))
 
             self.update_board()
 
@@ -534,6 +540,14 @@ def run_train():
             elif event.key() == Qt.Key.Key_F:
                 self.flip_flag = not self.flip_flag
                 self.update_board()
+
+            elif event.key() == Qt.Key.Key_U:
+                self.copy_to_clipboard(self.game_url,
+                                       "Game URL copied to clipboard")
+
+            elif event.key() == Qt.Key.Key_N:
+                self.copy_to_clipboard(self.move_row["fen_before"],
+                                       "Position copied to clipboard")
 
         #
         #     # elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
