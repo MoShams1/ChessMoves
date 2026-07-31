@@ -37,6 +37,7 @@ def run_train():
             # self.lichess_id = None
             # self.move_obj = None
             self.flip_flag = True
+            self.global_opacity = 0
             # self.current_move_num = 0
             # self.game_loaded_flag = False
 
@@ -60,6 +61,8 @@ def run_train():
             self.message_font = QFont()
             self.message_font.setPointSize(10)
 
+            self.effect = QGraphicsOpacityEffect()
+
             button_layout = self.create_button_layout()
             button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
 
@@ -69,12 +72,14 @@ def run_train():
             right_layout.setAlignment(Qt.AlignmentFlag.AlignTop |
                                       Qt.AlignmentFlag.AlignCenter)
             right_layout.addWidget(QLabel("QUESTION(S):"))
-            questions_value_widget = QLabel()
-            right_layout.addWidget(questions_value_widget)
+            self.questions_value_widget = QLabel()
+            right_layout.addWidget(self.questions_value_widget)
             right_layout.addWidget(QLabel("COMMENT(S):"))
-            comments_value_widget = QLabel()
-            right_layout.addWidget(comments_value_widget)
+            self.comments_value_widget = QLabel()
+            self.comments_value_widget.setGraphicsEffect(self.effect)
+            right_layout.addWidget(self.comments_value_widget)
             tags = QLabel()
+            tags.setGraphicsEffect(self.effect)
             right_layout.addWidget(tags)
             right_layout.addWidget(QLabel("Could you answer the question(s) "
                                           "above?"))
@@ -113,8 +118,8 @@ def run_train():
             self.tags = db.read_tags_from_db_train(cursor, self.game_row[
                 "game_id"])
             self.close_db_connection(conn)
-            questions_value_widget.setText(self.move_row["questions"])
-            comments_value_widget.setText(self.move_row["comments"])
+            self.questions_value_widget.setText(self.move_row["questions"])
+            self.comments_value_widget.setText(self.move_row["comments"])
             tags.setText("\n".join(f"#{tag}" for tag in self.tags))
 
             # self.button_widgets["Load"].clicked.connect(self.load_game)
@@ -179,6 +184,7 @@ def run_train():
                 evaluation=self.move_row["eval_before"],
             )
             self.game_panel_widget.set_move_cost_color()
+            self.effect.setOpacity(self.global_opacity)
 
         # def next_move(self):
         #     if (
@@ -540,6 +546,13 @@ def run_train():
             elif event.key() == Qt.Key.Key_F:
                 self.flip_flag = not self.flip_flag
                 self.update_board()
+                
+            elif event.key() == Qt.Key.Key_R:
+                if self.global_opacity == 0:
+                    self.global_opacity = 1
+                elif self.global_opacity == 1:
+                    self.global_opacity = 0
+                self.update_board()
 
             elif event.key() == Qt.Key.Key_U:
                 self.copy_to_clipboard(self.game_url,
@@ -568,6 +581,7 @@ def run_train():
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)
             self.show_message(message)
+
 
     # class Game:
     #

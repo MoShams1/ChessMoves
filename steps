@@ -12,12 +12,12 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
-[] make the show conditioned to "reveal" button click
+[] >>> make the show conditioned to "reveal" button click
 
 [] next position key saves the response into memory and shows next position
 [] add  button that saves from memory to db and quits
 
-[] positions are selected randomly, but moves with lower learning_idx are more likely to appear
+[] positions are selected randomly, but moves with lower learning_idx are more likely to appear. annotate three positions, solve one, reject one, skip one, see if the likelihood of appearance is as expected.
 
 
 
