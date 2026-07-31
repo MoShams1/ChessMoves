@@ -157,6 +157,20 @@ def read_tags_from_db(cursor, game_id, tag_move_list):
 
     return tag_move_list
 
+def read_tags_from_db_train(cursor, game_id):
+    cursor.execute("""
+        SELECT move_num, tags.tag
+        FROM moves
+        JOIN moves_tags ON moves.move_id = moves_tags.move_id
+        JOIN tags ON moves_tags.tag_id = tags.tag_id
+        WHERE moves.game_id = ?
+        ORDER BY move_num
+        """, (game_id,))
+    tag_list = []
+    for move_num, tag in cursor.fetchall():
+        tag_list.append(tag)
+    return tag_list
+
 def read_random_position_from_db(cursor):
     cursor.execute("""
         SELECT *

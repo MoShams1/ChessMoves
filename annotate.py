@@ -433,15 +433,11 @@ def run_annotate():
                 self.comment_widget.toPlainText())
             self.game.questions_list[move_nr - 1] = (
                 self.question_widget.toPlainText())
-            print(move_nr)
-            print(self.game.questions_list)
 
         def load_tags_to_ui(self, move_nr):
             tag_list = self.game.tag_move_list[move_nr - 1]
             for tag in tag_list:
                 self.tag_widgets[tag].setChecked(True)
-            print(move_nr)
-            print(self.game.comments_list[move_nr])
             self.comment_widget.setPlainText(self.game.comments_list[
                                                  move_nr - 1])
             self.question_widget.setPlainText(self.game.questions_list[

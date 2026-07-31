@@ -74,6 +74,8 @@ def run_train():
             right_layout.addWidget(QLabel("COMMENT(S):"))
             comments_value_widget = QLabel()
             right_layout.addWidget(comments_value_widget)
+            tags = QLabel()
+            right_layout.addWidget(tags)
             right_layout.addWidget(QLabel("Could you answer the question(s) "
                                           "above?"))
             right_layout.addLayout(right_button_layout)
@@ -116,8 +118,15 @@ def run_train():
             self.button_widgets["Close"].clicked.connect(self.close)
 
             self.game_row, self.move_row = self.load_position()
+            db_file_name = "chess_moves.db"
+            conn = sqlite3.connect(db_file_name)
+            cursor = conn.cursor()
+            self.tags = db.read_tags_from_db_train(cursor, self.game_row[
+                "game_id"])
+            self.close_db_connection(conn)
             questions_value_widget.setText(self.move_row["questions"])
             comments_value_widget.setText(self.move_row["comments"])
+            tags.setText("\n".join(f"#{tag}" for tag in self.tags))
 
             self.update_board()
 

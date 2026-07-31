@@ -12,8 +12,6 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
-[] >>> show saved tags
-
 [] make the show conditioned to "reveal" button click
 
 [] "URL" button copies the url (needs to be created from lichess_id?)
