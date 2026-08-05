@@ -32,7 +32,6 @@ def run_train():
 
             self.flip_flag = True
             self.global_opacity = 0
-            self.learning_idx = 0
 
             self.player_top_widget = QLabel()
             self.player_bottom_widget = QLabel()
@@ -92,10 +91,16 @@ def run_train():
                 orientation=self.flip_flag,
             )
 
+            self.game_row, self.move_row = self.load_position()
+            self.learning_idx = self.move_row["learning_idx"]
+            self.times_practiced = self.move_row["times_practiced"]
+
             # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
+            self.button_widgets["Yes"].clicked.connect(self.response_yes)
+            self.button_widgets["No"].clicked.connect(self.response_no)
+            self.button_widgets["Skip"].clicked.connect(self.response_skip)
 
-            self.game_row, self.move_row = self.load_position()
             if "/" in self.game_row["lichess_id"]:
                 self.game_url = ("https://lichess.org/study/" +
                                  self.game_row["lichess_id"])
@@ -267,7 +272,7 @@ def run_train():
             game_row = db.read_game_from_move_id(cursor, move_row["game_id"])
             if game_row["black"] in player_names:
                 self.flip_flag = not self.flip_flag
-
+            self.close_db_connection(connection)
             return game_row, move_row
 
         @staticmethod
@@ -297,16 +302,13 @@ def run_train():
                 self.update_board()
 
             elif event.key() == Qt.Key.Key_Y:
-                self.learning_idx += 1
-                # next position
+                self.response_yes()
 
             elif event.key() == Qt.Key.Key_N:
-                self.learning_idx -= 1
-                # next position
+                self.response_no()
 
             elif event.key() == Qt.Key.Key_K:
-                return
-                # next position
+                self.response_skip()
 
             elif event.key() == Qt.Key.Key_U:
                 self.copy_to_clipboard(self.game_url,
@@ -315,6 +317,25 @@ def run_train():
             elif event.key() == Qt.Key.Key_E:
                 self.copy_to_clipboard(self.move_row["fen_before"],
                                        "Position copied to clipboard")
+
+        def response_yes(self):
+            self.learning_idx += 1
+            self.times_practiced += 1
+            print(self.learning_idx)
+            print(self.times_practiced)
+            self.load_position()
+
+        def response_no(self):
+            self.learning_idx -= 1
+            self.times_practiced += 1
+            print(self.learning_idx)
+            print(self.times_practiced)
+            self.load_position()
+
+        def response_skip(self):
+            print(self.learning_idx)
+            print(self.times_practiced)
+            self.load_position()
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)

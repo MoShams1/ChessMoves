@@ -1,6 +1,7 @@
 
 GENERAL
 
+[] each button has a setShortcut method. Use it.
 
 ------------------------------------
 ANNOT0ATE
@@ -9,19 +10,18 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
->>> [] increase learning_idx when yes pressed
->>> [] decrease  learning_idx when no pressed
->>> [] leave it when skip pressed
->>> [] in all cases increase times_shown
+>>> [done] increase learning_idx when yes pressed
+>>> [done] decrease  learning_idx when no pressed
+>>> [done] leave it when skip pressed
+>>> [done] in all cases increase times_shown
 
-[] right key to save response to memory and show next position
-	[] save learning_idx to memory
-	[] save times_shown to memory
+>>> [done] read current learning index and times shown of the position
 
-[] adjust show likelihood of a position based on its learning_idx
+[] adjust show likelihood of a position based on its learning_idx [ p = 1/(1+idx) ]
+it will be a 2-step selection procedure: random selection of a position, p probability of being shown
 
->>> [] create one effect for each item that should be revealed
+[] create one effect for each item that should be revealed
 
-[] add save button to db
+>>> [] add save button to db
 
 
