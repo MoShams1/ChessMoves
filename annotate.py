@@ -247,7 +247,7 @@ def run_annotate():
                 "PGN": {"tooltip": "Copy game PGN (P)",
                         "width": width_small,
                         "spacing": spacing_small},
-                "FEN": {"tooltip": "Copy position FEN (N)",
+                "FEN": {"tooltip": "Copy position FEN (E)",
                         "width": width_small,
                         "spacing": spacing_large},
                 "Clear": {"tooltip": "Clear move tags (C)",
@@ -598,7 +598,7 @@ def run_annotate():
                 self.copy_to_clipboard(self.game.pgn,
                                        "Game PGN copied to clipboard")
 
-            elif self.game_loaded_flag and event.key() == Qt.Key.Key_N:
+            elif self.game_loaded_flag and event.key() == Qt.Key.Key_E:
                 self.copy_to_clipboard(self.game.board.fen(),
                                        "Position copied to clipboard")
 

@@ -16,8 +16,6 @@ from PyQt6.QtWidgets import (QApplication,
                              QGraphicsOpacityEffect)
 
 
-# noinspection PyUnresolvedReferences
-
 def run_train():
     class TrainWindow(QWidget):
 
@@ -32,14 +30,9 @@ def run_train():
             }
             """)
 
-            # self.game = None
-            # self.existing_game_id = None
-            # self.lichess_id = None
-            # self.move_obj = None
             self.flip_flag = True
             self.global_opacity = 0
-            # self.current_move_num = 0
-            # self.game_loaded_flag = False
+            self.learning_idx = 0
 
             self.player_top_widget = QLabel()
             self.player_bottom_widget = QLabel()
@@ -52,9 +45,6 @@ def run_train():
             self.eval_widget = QLabel()
 
             self.button_widgets = {}
-
-            # self.rb_group = QButtonGroup()
-            # self.tag_widgets = {}
 
             self.game_panel_widget = GamePanel(mode="train")
 
@@ -122,18 +112,11 @@ def run_train():
             self.comments_value_widget.setText(self.move_row["comments"])
             tags.setText("\n".join(f"#{tag}" for tag in self.tags))
 
-            # self.button_widgets["Load"].clicked.connect(self.load_game)
-            # self.button_widgets["Save"].clicked.connect(
-            #     self.save_analysis_to_db)
-            #
             self.button_widgets["URL"].clicked.connect(
                 lambda: self.copy_to_clipboard(
                     self.game_url,
                     "Game URL copied to clipboard"))
-            # self.button_widgets["PGN"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.pgn,
-            #         "Game PGN copied to clipboard"))
+
             self.button_widgets["FEN"].clicked.connect(
                 lambda: self.copy_to_clipboard(
                     self.move_row["fen_before"],
@@ -142,37 +125,6 @@ def run_train():
             self.update_board()
 
         def update_board(self):
-
-            # if self.current_move_num > 0:
-            #
-            #     if self.current_move_num % 2 == 1:
-            #         prefix = f"{(self.current_move_num + 1) // 2}. "
-            #
-            #     else:
-            #         prefix = f"{self.current_move_num // 2}... "
-            #
-            #     self.move_notation_widget.setText(
-            #         f"{prefix}{self.game.moves[self.current_move_num - 1]}")
-            #
-            #     self.move_cost_widget.setText(
-            #         f"{self.game.cost_list[self.current_move_num - 1]}")
-            #
-            #     current_eval = self.game.eval_list[self.current_move_num - 1]
-            #
-            #     if isinstance(current_eval, float):
-            #         if not (current_eval < 0):
-            #             self.eval_widget.setText(f"+{current_eval}")
-            #         else:
-            #             self.eval_widget.setText(f"{current_eval}")
-            #
-            #     if isinstance(current_eval, str):
-            #         self.eval_widget.setText(current_eval)
-            #
-            # else:
-            #     self.move_notation_widget.setText("-")
-            #     self.move_cost_widget.setText("-")
-            #     self.eval_widget.setText("-")
-
             self.game_panel_widget.show_position(
                 board=chess.Board(self.move_row["fen_before"]),
                 white_player=self.game_row["white"],
@@ -185,46 +137,6 @@ def run_train():
             )
             self.game_panel_widget.set_move_cost_color()
             self.effect.setOpacity(self.global_opacity)
-
-        # def next_move(self):
-        #     if (
-        #             self.game is not None
-        #             and
-        #             (self.current_move_num < len(self.game.move_obj_list))
-        #     ):
-        #         if self.current_move_num > 0:
-        #             self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
-        #                                      move_nr=self.current_move_num)
-        #         self.game.fen_list[
-        #             self.current_move_num] = self.game.board.fen()
-        #         self.current_move_num += 1
-        #         self.clear_tags_in_ui()
-        #         self.load_tags_to_ui(move_nr=self.current_move_num)
-        #
-        #         self.move_obj = self.game.move_obj_list[
-        #             self.current_move_num - 1]
-        #         self.game.board.push(self.move_obj)
-        #         self.update_board()
-
-        # def previous_move(self):
-        #     if (
-        #             self.game is not None
-        #             and
-        #             self.current_move_num > 0
-        #     ):
-        #         self.save_tags_to_memory(tag_list=self.read_tags_from_ui(),
-        #                                  move_nr=self.current_move_num)
-        #         self.current_move_num -= 1
-        #         self.clear_tags_in_ui()
-        #         self.load_tags_to_ui(move_nr=self.current_move_num)
-        #
-        #         if self.current_move_num == 0:
-        #             self.move_notation_widget.setText("-")
-        #             self.move_cost_widget.setText("-")
-        #             self.eval_widget.setText("-")
-        #
-        #         self.game.board.pop()
-        #         self.update_board()
 
         def create_button_layout(self):
             width_small = 50
@@ -239,7 +151,7 @@ def run_train():
                 "URL": {"tooltip": "Copy game URL (U)",
                         "width": width_small,
                         "spacing": spacing_small},
-                "FEN": {"tooltip": "Copy position FEN (N)",
+                "FEN": {"tooltip": "Copy position FEN (E)",
                         "width": width_small,
                         "spacing": spacing_large},
                 "Close": {"tooltip": "Close window (Esc)",
@@ -288,65 +200,6 @@ def run_train():
 
             return layout
 
-        # def create_tag_layout(self):
-        #
-        #     layout = QHBoxLayout()
-        #     layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-        #                         Qt.AlignmentFlag.AlignHCenter)
-        #     layout.setContentsMargins(30, 15, 0, 0)
-        #
-        #     layout_left = QVBoxLayout()
-        #     layout_left.setAlignment(Qt.AlignmentFlag.AlignTop)
-        #     layout_right = QVBoxLayout()
-        #     layout_right.setAlignment(Qt.AlignmentFlag.AlignTop)
-        #
-        #     for key in list(tag_source.keys()):
-        #
-        #         header = key.split('_')[0]
-        #         options = tag_source[key]
-        #         box_type = key.split('_')[1]
-        #
-        #         layout_block = QVBoxLayout()
-        #         layout_block.addSpacing(20)
-        #         if not (header == ""):
-        #             header_widget = QLabel(header)
-        #             header_widget.setFont(self.tag_header_font)
-        #             layout_block.addWidget(header_widget)
-        #
-        #         if box_type == "cb":
-        #             for option in options:
-        #                 option_widget = QCheckBox(option)
-        #                 self.tag_widgets[option] = option_widget
-        #                 layout_block.addWidget(option_widget)
-        #
-        #         elif box_type == "rb":
-        #             for option in options:
-        #                 option_widget = QRadioButton(option)
-        #                 self.rb_group.addButton(option_widget)
-        #                 self.tag_widgets[option] = option_widget
-        #                 layout_block.addWidget(option_widget)
-        #
-        #         else:
-        #             return
-        #
-        #         if (
-        #                 header == "GAME PHASE" or
-        #                 header == "MISSED RESPONSE" or
-        #                 header == "DIAGNOSIS"):
-        #             layout_left.addLayout(layout_block)
-        #
-        #         if (
-        #                 header == "TACTICAL THEME" or
-        #                 header == "POSITIONAL DISADVANTAGE" or
-        #                 header == ""):
-        #             layout_right.addLayout(layout_block)
-        #
-        #     layout.addLayout(layout_left)
-        #     layout.addSpacing(20)
-        #     layout.addLayout(layout_right)
-        #
-        #     return layout
-
         def show_message(self, text):
 
             overlay = QWidget(self)
@@ -393,6 +246,7 @@ def run_train():
                 animation.setStartValue(effect.opacity())
                 animation.setEndValue(0)
                 animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+                # noinspection PyUnresolvedReferences
                 animation.finished.connect(overlay.deleteLater)
                 animation.start()
 
@@ -400,26 +254,10 @@ def run_train():
 
             QTimer.singleShot(2000, fade_out)
 
-        # def read_tags_from_ui(self):
-        #     tag_list = []
-        #     for key, value in self.tag_widgets.items():
-        #         if value.isChecked():
-        #             tag_list.append(key)
-        #     return tag_list
-
-        # def save_tags_to_memory(self, tag_list, move_nr):
-        #     self.game.tag_move_list[move_nr - 1] = tag_list
-
         def load_tags_to_ui(self, move_nr):
             tag_list = self.game.tag_move_list[move_nr - 1]
             for tag in tag_list:
                 self.tag_widgets[tag].setChecked(True)
-
-        # def clear_tags_in_ui(self):
-        #     self.rb_group.setExclusive(False)
-        #     for value in self.tag_widgets.values():
-        #         value.setChecked(False)
-        #     self.rb_group.setExclusive(True)
 
         def load_position(self):
             connection = sqlite3.connect("chess_moves.db")
@@ -431,96 +269,6 @@ def run_train():
                 self.flip_flag = not self.flip_flag
 
             return game_row, move_row
-
-        #     # lichess_url = QApplication.clipboard().text()
-        #     # lichess_url = "https://lichess.org/study/eP6xGQfo/8kz0yG5n"
-        #     lichess_url = "https://lichess.org/HbXe1F1j/black"
-        #     if "study" in lichess_url:
-        #         my_token = "lip_XB7WRyKqvpEnfFW9iHox"
-        #         self.lichess_id = lichess_url.split("study/")[1]
-        #         req_game = requests.get(
-        #             f"https://lichess.org/api/study/{self.lichess_id}.pgn",
-        #             headers={"Authorization": f"Bearer {my_token}"})
-        #     else:
-        #         self.lichess_id = lichess_url.split(".org/")[1].split("/")[0]
-        #         req_game = requests.get(
-        #             f"https://lichess.org/game/export/{self.lichess_id}")
-        #
-        #     self.game = Game(req_game)
-        #
-        #     if self.game.black in \
-        #             ["GrayArmy", "Mohammad Shams", "Mohammad Shams-Ahmar"]:
-        #         self.flip_flag = not self.flip_flag
-        #
-        #     self.update_board()
-        #
-        #     cursor = None
-        #     conn = None
-        #     db_file_name = "chess_moves.db"
-        #     if os.path.exists(db_file_name):
-        #         conn = sqlite3.connect(db_file_name)
-        #         cursor = conn.cursor()
-        #         self.existing_game_id = db.check_if_game_exists(
-        #             cursor,
-        #             self.lichess_id)
-        #
-        #     if self.existing_game_id:
-        #         self.show_message(
-        #             "Game loaded\n"
-        #             "WARNING: Game already exists in database!")
-        #         self.game.tag_move_list = db.read_tags_from_db(
-        #             cursor,
-        #             self.existing_game_id,
-        #             self.game.tag_move_list)
-        #     else:
-        #         self.show_message("Game loaded")
-        #         print("Game Loaded!!")
-        #
-        #     self.game_loaded_flag = True
-        #     self.close_db_connection(conn)
-
-        # def save_analysis_to_db(self):
-        #
-        # tag_list = self.read_tags_from_ui()
-        # self.save_tags_to_memory(tag_list, self.current_move_num)
-        #
-        # db_file_name = "chess_moves.db"
-        # conn = sqlite3.connect(db_file_name)
-        # conn.execute("PRAGMA foreign_keys = ON")
-        # cursor = conn.cursor()
-        #
-        # db.initialize_database(cursor)
-        #
-        # new_game_id = db.save_game_to_db(cursor=cursor,
-        #                                  lichess_id=self.lichess_id,
-        #                                  date=self.game.date,
-        #                                  white=self.game.white,
-        #                                  black=self.game.black)
-        #
-        # for imove in range(self.current_move_num):
-        #     tag_list = self.game.tag_move_list[imove]
-        #     if tag_list:
-        #         move_id = db.save_moves_to_db(
-        #             cursor=cursor,
-        #             game_id=new_game_id,
-        #             move_num=imove + 1,
-        #             move_notation=self.move_notation_widget.text(),
-        #             move_cost=self.game.cost_list[imove],
-        #             fen_before=self.game.fen_list[imove])
-        #
-        #         for tag in tag_list:
-        #             tag_id = db.save_tags_to_db(cursor=cursor,
-        #                                         tag=tag)
-        #             db.save_moves_tags_to_db(cursor=cursor,
-        #                                      move_id=move_id,
-        #                                      tag_id=tag_id)
-        #
-        # self.close_db_connection(conn)
-        #
-        # if self.existing_game_id:
-        #     self.show_message("Analysis updated")
-        # else:
-        #     self.show_message("Analysis saved")
 
         @staticmethod
         def close_db_connection(connection):
@@ -537,12 +285,6 @@ def run_train():
             if event.key() == Qt.Key.Key_Escape:
                 self.close()
 
-            #     elif event.key() == Qt.Key.Key_Right:
-            #         # self.next_move()
-            #
-            #     # elif event.key() == Qt.Key.Key_Left:
-            #     #     self.previous_move()
-            #
             elif event.key() == Qt.Key.Key_F:
                 self.flip_flag = not self.flip_flag
                 self.update_board()
@@ -554,132 +296,29 @@ def run_train():
                     self.global_opacity = 0
                 self.update_board()
 
+            elif event.key() == Qt.Key.Key_Y:
+                self.learning_idx += 1
+                # next position
+
+            elif event.key() == Qt.Key.Key_N:
+                self.learning_idx -= 1
+                # next position
+
+            elif event.key() == Qt.Key.Key_K:
+                return
+                # next position
+
             elif event.key() == Qt.Key.Key_U:
                 self.copy_to_clipboard(self.game_url,
                                        "Game URL copied to clipboard")
 
-            elif event.key() == Qt.Key.Key_N:
+            elif event.key() == Qt.Key.Key_E:
                 self.copy_to_clipboard(self.move_row["fen_before"],
                                        "Position copied to clipboard")
-
-        #
-        #     # elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
-        #     #     self.load_game()
-        #
-        #
-        #     elif event.key() == Qt.Key.Key_U:
-        #         self.copy_to_clipboard(self.game.url,
-        #                                "Game URL copied to clipboard")
-        #
-        #     elif event.key() == Qt.Key.Key_N:
-        #         self.copy_to_clipboard(self.game.board.fen(),
-        #                                "Position copied to clipboard")
-        #
-        #     elif event.key() == Qt.Key.Key_S:
-        # self.save_analysis_to_db()
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)
             self.show_message(message)
-
-
-    # class Game:
-    #
-    #     def __init__(self, req_game):
-    #
-    #         # ----------------------------------------------------------------
-    #         # load pgn file
-    #
-    #         self.parsed_game = chess.pgn.read_game(io.StringIO(req_game.text))
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract board
-    #         self.board = self.parsed_game.board()
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract players' names
-    #         self.white = self.parsed_game.headers["White"]
-    #         self.black = self.parsed_game.headers["Black"]
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract date
-    #         self.date = self.parsed_game.headers["Date"]
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract moves
-    #         board = self.parsed_game.board()
-    #
-    #         self.move_obj_list = list(self.parsed_game.mainline_moves())
-    #         self.moves = []
-    #         for pushable_move in self.move_obj_list:
-    #             self.moves.append(board.san(pushable_move))
-    #             board.push(pushable_move)
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract engine evaluation
-    #
-    #         self.pgn = str(self.parsed_game)
-    #         pgn_parts = self.pgn.split()
-    #         keyword = "[%eval"
-    #
-    #         self.eval_list = []
-    #         for i, part in enumerate(pgn_parts):
-    #             if part == keyword:
-    #                 try:
-    #                     self.eval_list.append(float(pgn_parts[i + 1][:-1]))
-    #                 except ValueError:
-    #                     self.eval_list.append(pgn_parts[i + 1][:-1])
-    #
-    #         if len(self.eval_list) == len(self.moves) - 1:
-    #             self.eval_list.append(self.parsed_game.headers["Result"])
-    #
-    #         # ----------------------------------------------------------------
-    #         # calculate move cost
-    #
-    #         self.cost_list = []
-    #
-    #         for ieval, _ in enumerate(self.eval_list):
-    #
-    #             if ieval == 0:
-    #                 self.cost_list.append(self.eval_list[ieval])
-    #
-    #             else:
-    #                 last_eval = self.eval_list[ieval - 1]
-    #                 curr_eval = self.eval_list[ieval]
-    #
-    #                 if isinstance(last_eval, float) and \
-    #                         isinstance(curr_eval, str):
-    #                     self.cost_list.append("Unavoidable Checkmate")
-    #
-    #                 if isinstance(last_eval, str) and \
-    #                         isinstance(curr_eval, str):
-    #                     self.cost_list.append(0)
-    #
-    #                 if isinstance(last_eval, str) and \
-    #                         isinstance(curr_eval, float):
-    #                     self.cost_list.append("Missed Checkmate")
-    #
-    #                 if isinstance(last_eval, float) and \
-    #                         isinstance(curr_eval, float):
-    #                     self.cost_list.append(round(curr_eval - last_eval, 2))
-    #
-    #             if isinstance(self.cost_list[-1], float):
-    #
-    #                 if ieval % 2 == 0:
-    #                     self.cost_list[-1] = -self.cost_list[-1]
-    #
-    #                 if not (self.cost_list[-1] > 0):
-    #                     self.cost_list[-1] = 0
-    #
-    #         # ----------------------------------------------------------------
-    #         # extract url
-    #         self.url = self.parsed_game.headers["Site"]
-    #
-    #         # create a preallocated list to store tags for each move
-    #         self.tag_move_list = [[] for _ in range(len(self.moves))]
-    #
-    #         # create a preallocated list to store fen for each move
-    #         self.fen_list = [[] for _ in range(len(self.moves))]
 
     window = TrainWindow()
     window.show()
