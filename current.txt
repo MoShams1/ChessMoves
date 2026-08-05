@@ -1,0 +1,27 @@
+
+GENERAL
+
+
+------------------------------------
+ANNOT0ATE
+
+
+------------------------------------
+TRAIN
+
+>>> [] increase learning_idx when yes pressed
+>>> [] decrease  learning_idx when no pressed
+>>> [] leave it when skip pressed
+>>> [] in all cases increase times_shown
+
+[] right key to save response to memory and show next position
+	[] save learning_idx to memory
+	[] save times_shown to memory
+
+[] adjust show likelihood of a position based on its learning_idx
+
+>>> [] create one effect for each item that should be revealed
+
+[] add save button to db
+
+
