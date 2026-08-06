@@ -47,6 +47,7 @@ def run_annotate():
             self.flip_flag = True
             self.current_move_num = 0
             self.game_loaded_flag = False
+
             self.comment_widget = QPlainTextEdit()
             self.question_widget = QPlainTextEdit()
 
@@ -183,6 +184,7 @@ def run_annotate():
 
             if self.current_move_num > 0:
                 self.game_panel_widget.set_move_cost_color()
+
 
         def next_move(self):
             if (
@@ -433,6 +435,7 @@ def run_annotate():
                 self.comment_widget.toPlainText())
             self.game.questions_list[move_nr - 1] = (
                 self.question_widget.toPlainText())
+            self.game.notation_list[move_nr - 1] = self.move_notation_widget.text()
 
         def load_tags_to_ui(self, move_nr):
             tag_list = self.game.tag_move_list[move_nr - 1]
@@ -478,7 +481,7 @@ def run_annotate():
                 return
 
             if self.game.black in player_names:
-                self.flip_flag = not self.flip_flag
+                self.flip_flag = False
 
             self.update_board()
 
@@ -496,10 +499,16 @@ def run_annotate():
                     self.show_message(
                         "Game loaded\n"
                         "WARNING: Game already exists in database!")
-                    self.game.tag_move_list = db.read_tags_from_db(
+                    (self.game.tag_move_list,
+                     self.game.comments_list,
+                     self.game.questions_list,
+                     ) = (db.read_tags_from_db(
                         cursor,
                         self.existing_game_id,
-                        self.game.tag_move_list)
+                        self.game.tag_move_list,
+                        self.game.comments_list,
+                        self.game.questions_list)
+                    )
                 else:
                     self.show_message("Game loaded")
                     print("Game Loaded!!")
@@ -532,13 +541,13 @@ def run_annotate():
                         cursor=cursor,
                         game_id=new_game_id,
                         move_num=imove + 1,
-                        move_notation=self.move_notation_widget.text(),
+                        move_notation=self.game.notation_list[imove],
                         move_cost=self.game.cost_list[imove],
                         fen_before=self.game.fen_before_list[imove],
                         eval_before=self.game.eval_list[imove - 1],
                         last_move_uci=self.game.move_obj_list[imove - 1].uci(),
-                        comments=self.comment_widget.toPlainText(),
-                        questions=self.question_widget.toPlainText(),
+                        comments=self.game.comments_list[imove],
+                        questions=self.game.questions_list[imove],
                     )
 
                     for tag in tag_list:
@@ -731,6 +740,9 @@ def run_annotate():
 
             # create a preallocated list to store questions
             self.questions_list = ["" for _ in range(len(self.moves))]
+
+            # create a preallocated list to store move notations
+            self.notation_list = ["" for _ in range(len(self.moves))]
 
     window = AnnotateWindow()
     window.show()

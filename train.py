@@ -1,4 +1,5 @@
 import chess
+import random
 import sqlite3
 import chess.pgn
 import chess.svg
@@ -143,6 +144,9 @@ def run_train():
             self.game_panel_widget.set_move_cost_color()
             self.effect.setOpacity(self.global_opacity)
 
+            self.questions_value_widget.setText(self.move_row["questions"])
+            self.comments_value_widget.setText(self.move_row["comments"])
+
         def create_button_layout(self):
             width_small = 50
             width_large = 70
@@ -268,12 +272,31 @@ def run_train():
             connection = sqlite3.connect("chess_moves.db")
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
-            move_row = db.read_random_position_from_db(cursor)
+
+            while True:
+                move_row = db.read_random_position_from_db(cursor)
+                p = 1 / (move_row["learning_idx"] + 1)
+                r = random.random()
+                if r < p:
+                    break
+
             game_row = db.read_game_from_move_id(cursor, move_row["game_id"])
             if game_row["black"] in player_names:
-                self.flip_flag = not self.flip_flag
+                self.flip_flag = False
             self.close_db_connection(connection)
             return game_row, move_row
+
+        def save_train_response(self):
+            conn = sqlite3.connect("chess_moves.db")
+            cursor = conn.cursor()
+            cursor.execute("""
+                UPDATE moves
+                SET learning_idx = ?, times_practiced = ?
+                WHERE move_id = ?
+                """, (self.learning_idx,
+                      self.times_practiced,
+                      self.move_row["move_id"]))
+            self.close_db_connection(conn)
 
         @staticmethod
         def close_db_connection(connection):
@@ -293,7 +316,7 @@ def run_train():
             elif event.key() == Qt.Key.Key_F:
                 self.flip_flag = not self.flip_flag
                 self.update_board()
-                
+
             elif event.key() == Qt.Key.Key_R:
                 if self.global_opacity == 0:
                     self.global_opacity = 1
@@ -323,19 +346,25 @@ def run_train():
             self.times_practiced += 1
             print(self.learning_idx)
             print(self.times_practiced)
-            self.load_position()
+            self.save_train_response()
+            self.game_row, self.move_row = self.load_position()
+            self.update_board()
 
         def response_no(self):
-            self.learning_idx -= 1
+            if self.learning_idx > 0:
+                self.learning_idx -= 1
             self.times_practiced += 1
             print(self.learning_idx)
             print(self.times_practiced)
-            self.load_position()
+            self.save_train_response()
+            self.game_row, self.move_row = self.load_position()
+            self.update_board()
 
         def response_skip(self):
             print(self.learning_idx)
             print(self.times_practiced)
-            self.load_position()
+            self.game_row, self.move_row = self.load_position()
+            self.update_board()
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)

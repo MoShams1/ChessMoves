@@ -142,7 +142,8 @@ def save_moves_tags_to_db(cursor, move_id, tag_id):
     return move_tag_id
 
 
-def read_tags_from_db(cursor, game_id, tag_move_list):
+def read_tags_from_db(cursor, game_id, tag_move_list, comments_list,
+                      questions_list):
     cursor.execute("""
         SELECT move_num, tags.tag
         FROM moves
@@ -155,7 +156,26 @@ def read_tags_from_db(cursor, game_id, tag_move_list):
     for move_num, tag in cursor.fetchall():
         tag_move_list[move_num - 1].append(tag)
 
-    return tag_move_list
+    cursor.execute("""
+            SELECT move_num, comments
+            FROM moves            
+            WHERE moves.game_id = ?
+            """, (game_id,))
+
+    for move_num, comment in cursor.fetchall():
+        comments_list[move_num - 1] = comment
+
+    cursor.execute("""
+                SELECT move_num, questions
+                FROM moves            
+                WHERE moves.game_id = ?
+                """, (game_id,))
+
+    for move_num, question in cursor.fetchall():
+        questions_list[move_num - 1] = question
+
+    return tag_move_list, comments_list, questions_list
+
 
 def read_tags_from_db_train(cursor, game_id):
     cursor.execute("""
@@ -171,6 +191,7 @@ def read_tags_from_db_train(cursor, game_id):
         tag_list.append(tag)
     return tag_list
 
+
 def read_random_position_from_db(cursor):
     cursor.execute("""
         SELECT *
@@ -179,6 +200,7 @@ def read_random_position_from_db(cursor):
         LIMIT 1
     """)
     return cursor.fetchone()
+
 
 def read_game_from_move_id(cursor, game_id):
     cursor.execute("""
