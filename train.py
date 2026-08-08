@@ -34,6 +34,9 @@ def run_train():
             self.flip_flag = True
             self.global_opacity = 0
 
+            self.learning_idx = None
+            self.times_practiced = None
+
             self.player_top_widget = QLabel()
             self.player_bottom_widget = QLabel()
 
@@ -52,6 +55,9 @@ def run_train():
             self.message_font.setPointSize(10)
 
             self.effect = QGraphicsOpacityEffect()
+
+            self.learning_idx_label = QLabel("LEARN")
+            self.times_practiced_label = QLabel()
 
             button_layout = self.create_button_layout()
             button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -74,6 +80,8 @@ def run_train():
             right_layout.addWidget(QLabel("Could you answer the question(s) "
                                           "above?"))
             right_layout.addLayout(right_button_layout)
+            right_layout.addWidget(self.learning_idx_label)
+            right_layout.addWidget(self.times_practiced_label)
 
             master_layout_top = QHBoxLayout()
             master_layout_top.addWidget(self.game_panel_widget, 4)
@@ -93,8 +101,6 @@ def run_train():
             )
 
             self.game_row, self.move_row = self.load_position()
-            self.learning_idx = self.move_row["learning_idx"]
-            self.times_practiced = self.move_row["times_practiced"]
 
             # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
@@ -146,6 +152,11 @@ def run_train():
 
             self.questions_value_widget.setText(self.move_row["questions"])
             self.comments_value_widget.setText(self.move_row["comments"])
+
+            self.learning_idx_label.setText(
+                str(self.move_row["learning_idx"]))
+            self.times_practiced_label.setText(
+                str(self.move_row["times_practiced"]))
 
         def create_button_layout(self):
             width_small = 50
@@ -283,6 +294,10 @@ def run_train():
             game_row = db.read_game_from_move_id(cursor, move_row["game_id"])
             if game_row["black"] in player_names:
                 self.flip_flag = False
+
+            self.learning_idx = move_row["learning_idx"]
+            self.times_practiced = move_row["times_practiced"]
+
             self.close_db_connection(connection)
             return game_row, move_row
 
@@ -344,8 +359,6 @@ def run_train():
         def response_yes(self):
             self.learning_idx += 1
             self.times_practiced += 1
-            print(self.learning_idx)
-            print(self.times_practiced)
             self.save_train_response()
             self.game_row, self.move_row = self.load_position()
             self.update_board()
@@ -354,15 +367,11 @@ def run_train():
             if self.learning_idx > 0:
                 self.learning_idx -= 1
             self.times_practiced += 1
-            print(self.learning_idx)
-            print(self.times_practiced)
             self.save_train_response()
             self.game_row, self.move_row = self.load_position()
             self.update_board()
 
         def response_skip(self):
-            print(self.learning_idx)
-            print(self.times_practiced)
             self.game_row, self.move_row = self.load_position()
             self.update_board()
 

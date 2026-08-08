@@ -11,26 +11,12 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
-[done] adjust show likelihood of a position based on its learning_idx [ p = 1/(1+idx) ]
-it will be a 2-step selection procedure: random selection of a position, p probability of being shown
-
 [] >>> show learning index and times practiced of each move
 [] >>> check if the probability adjustment works properly
-
+[] >>> probability of each move should be in relation to other moves
 [] create one effect for each item that should be revealed
-
-[done] add save button to db
-
-[done] move and cost should refer to my move and be hidden in the beginning
 
 
 ------------------------------------
 DEBUG
 
-[done] notation, comment, and question from last move are saved to every move
-[done] comments and question don't show up when loading existing analysis
-[done] next position in train is fixed (not random)
-[done] comments and questions are fixed (do not correspond to position but are from the last in the row)
-[done] after game is loaded and you are Black, pressing load loads anew and flips the board (because you were black). I though I prevented that by setting up a load_game_flag.
-[done] when new position is black, there is a false flip
-[done] in Annotate: check if "save" button works the as the shortcut works
