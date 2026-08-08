@@ -202,6 +202,12 @@ def read_random_position_from_db(cursor):
     return cursor.fetchone()
 
 
+def read_learning_idx_column(cursor):
+    cursor.execute("SELECT learning_idx FROM moves")
+    learning_indices = [row[0] for row in cursor.fetchall()]
+    return learning_indices
+
+
 def read_game_from_move_id(cursor, game_id):
     cursor.execute("""
     SELECT *

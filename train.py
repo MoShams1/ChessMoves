@@ -284,13 +284,20 @@ def run_train():
             connection.row_factory = sqlite3.Row
             cursor = connection.cursor()
 
-            while True:
-                move_row = db.read_random_position_from_db(cursor)
-                p = 1 / (move_row["learning_idx"] + 1)
-                r = random.random()
-                if r < p:
-                    break
+            idx_list = db.read_learning_idx_column(cursor)
 
+            if min(idx_list) == max(idx_list):
+                move_row = db.read_random_position_from_db(cursor)
+            else:
+                while True:
+                    move_row = db.read_random_position_from_db(cursor)
+
+                    p = ((move_row["learning_idx"] - min(idx_list)) / (max(
+                        idx_list) - min(idx_list))) * 0.95
+
+                    r = random.random()
+                    if r >= p:
+                        break
             game_row = db.read_game_from_move_id(cursor, move_row["game_id"])
             if game_row["black"] in player_names:
                 self.flip_flag = False
