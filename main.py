@@ -15,18 +15,55 @@ class MasterWindow(QWidget):
         super().__init__()
 
         self.setWindowTitle("ChessMoves")
-        self.resize(300, 130)
+        self.resize(300, 300)
         self.setStyleSheet("""
             QWidget {
-                color: #D3D3D3;
+                background: rgb(60, 60, 60);
+                color: rgb(200, 200, 200);                
+            }
+            
+            QLabel[level="1"] {
+                font-family: Georgia;
+                font-size: 42px;
+                margin: 40px;
+            }
+            
+            QPushButton[level="1"] {
+                background-color: rgb(20, 80, 150);
+                border-radius: 10px;
+                font-size: 21px;                
+                padding: 10px;
+            }
+            
+            QPushButton[level="2"] {
+                background-color: rgb(100, 100, 100);
+                border-style: outset;
+                border-width: 0px;
+                border-radius: 10px;
+                border-color: black;
+                font-size: 21px;                
+                padding: 10px;
+            }
+            
+            QPushButton[level="3"] {
+                background-color: rgb(60, 60, 60);
+                border-style: outset;
+                border-width: 0px;
+                border-radius: 10px;
+                border-color: black;
+                font-size: 21px;
+                text-decoration: underline;                
+                padding: 10px;
             }
         """)
 
-        main_message = QLabel("Select one of the options below:")
         self.button_widgets = {}
 
         self.annotate_window = None
         self.train_window = None
+
+        self.title = QLabel("ChessMoves")
+        self.title.setProperty('level', '1')
 
         # --------------------------------------------------------------------
         # create layouts
@@ -38,8 +75,8 @@ class MasterWindow(QWidget):
         # organize layouts
 
         master_layout = QVBoxLayout()
-        main_message.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        # master_layout.addWidget(main_message)
+        master_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        master_layout.addWidget(self.title)
         master_layout.addLayout(button_layout)
         master_layout.setContentsMargins(30, 30, 30, 30)
         self.setLayout(master_layout)
@@ -52,38 +89,34 @@ class MasterWindow(QWidget):
         self.button_widgets["Quit"].clicked.connect(self.close)
 
     def create_button_layout(self):
-        width_small = 50
-        width_large = 70
-        spacing_small = -10
-        spacing_large = 15
-        layout = QHBoxLayout()
+        width = 250
+        layout = QVBoxLayout()
         buttons = {
             "Annotate":
                 {"tooltip": "Annotate games (A)",
-                 "width": width_large,
-                 "spacing": spacing_small},
+                 "width": width},
             "Train":
                 {"tooltip": "Train annotated moves/positions (T)",
-                 "width": width_large,
-                 "spacing": spacing_small},
-            "Report":
-                {"tooltip": "Create statistical reports (R)",
-                 "width": width_large,
-                 "spacing": spacing_large},
+                 "width": width},
             "Quit":
                 {"tooltip": "Quit (Esc)",
-                 "width": width_small,
-                 "spacing": spacing_small}
+                 "width": width}
         }
 
         for button_name, config in buttons.items():
             button_widget = QPushButton(button_name)
             button_widget.setToolTip(config["tooltip"])
-            button_widget.setFixedWidth(config["width"])
+            if button_name in ["Annotate"]:
+                button_widget.setProperty('level', '1')
+            if button_name in ["Train"]:
+                button_widget.setProperty('level', '2')
+            if button_name in ["Quit"]:
+                button_widget.setProperty('level', '3')
 
             self.button_widgets[button_name] = button_widget
+            self.button_widgets[button_name].setFixedWidth(
+                int(config["width"]))
             layout.addWidget(button_widget)
-            layout.addSpacing(int(config["spacing"]))
 
         return layout
 

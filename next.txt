@@ -12,6 +12,7 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
+[] add a histogram ofthe learning indices
 
 
 ------------------------------------

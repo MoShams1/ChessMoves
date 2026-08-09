@@ -44,8 +44,16 @@ def run_train():
             self.pixmap = QPixmap()
 
             self.move_notation_widget = QLabel()
+            self.effect_notation = QGraphicsOpacityEffect()
+            self.move_notation_widget.setGraphicsEffect(self.effect_notation)
+
             self.move_cost_widget = QLabel()
+            self.effect = QGraphicsOpacityEffect()
+            self.move_cost_widget.setGraphicsEffect(self.effect)
+
             self.eval_widget = QLabel()
+            self.effect = QGraphicsOpacityEffect()
+            self.eval_widget.setGraphicsEffect(self.effect)
 
             self.button_widgets = {}
 
@@ -53,8 +61,6 @@ def run_train():
 
             self.message_font = QFont()
             self.message_font.setPointSize(10)
-
-            self.effect = QGraphicsOpacityEffect()
 
             self.times_practiced_header = QLabel("Times Practiced: ")
             self.times_practiced_value = QLabel()
@@ -73,9 +79,12 @@ def run_train():
             self.questions_value_widget = QLabel()
             right_layout.addWidget(self.questions_value_widget)
             right_layout.addWidget(QLabel("COMMENT(S):"))
+
             self.comments_value_widget = QLabel()
+            self.effect = QGraphicsOpacityEffect()
             self.comments_value_widget.setGraphicsEffect(self.effect)
             right_layout.addWidget(self.comments_value_widget)
+
             tags = QLabel()
             tags.setGraphicsEffect(self.effect)
             right_layout.addWidget(tags)
@@ -104,7 +113,6 @@ def run_train():
 
             self.game_row, self.move_row = self.load_position()
 
-            # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
             self.button_widgets["Close"].clicked.connect(self.close)
             self.button_widgets["Yes"].clicked.connect(self.response_yes)
             self.button_widgets["No"].clicked.connect(self.response_no)

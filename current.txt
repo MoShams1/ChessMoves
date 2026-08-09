@@ -7,6 +7,7 @@ GENERAL
 ------------------------------------
 ANNOT0ATE
 
+[] use tab key to switch focus across window, comments, questions
 
 ------------------------------------
 TRAIN
