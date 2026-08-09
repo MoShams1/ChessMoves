@@ -1,7 +1,7 @@
 
 GENERAL
 
-[] each button has a setShortcut method. Use it.
+[] load game should come with save if there is an ongoing analysis
 [] check the efficiency of db connects/disconnects
 
 ------------------------------------

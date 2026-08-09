@@ -1,12 +1,9 @@
-from PyQt6.QtCore import Qt
-from annotate import run_annotate
 from train import run_train
-from PyQt6.QtWidgets import (QApplication,
-                             QLabel,
-                             QWidget,
-                             QPushButton,
-                             QVBoxLayout,
-                             QHBoxLayout)
+from annotate import run_annotate
+from PyQt6.QtCore import Qt
+from PyQt6.QtGui import QPixmap
+from PyQt6.QtWidgets import (QApplication, QLabel, QWidget, QPushButton,
+                             QVBoxLayout)
 
 
 class MasterWindow(QWidget):
@@ -14,130 +11,80 @@ class MasterWindow(QWidget):
     def __init__(self):
         super().__init__()
 
-        self.setWindowTitle("ChessMoves")
-        self.resize(300, 300)
-        self.setStyleSheet("""
-            QWidget {
-                background: rgb(60, 60, 60);
-                color: rgb(200, 200, 200);                
-            }
-            
-            QLabel[level="1"] {
-                font-family: Georgia;
-                font-size: 42px;
-                margin: 40px;
-            }
-            
-            QPushButton[level="1"] {
-                background-color: rgb(20, 80, 150);
-                border-radius: 10px;
-                font-size: 21px;                
-                padding: 10px;
-            }
-            
-            QPushButton[level="2"] {
-                background-color: rgb(100, 100, 100);
-                border-style: outset;
-                border-width: 0px;
-                border-radius: 10px;
-                border-color: black;
-                font-size: 21px;                
-                padding: 10px;
-            }
-            
-            QPushButton[level="3"] {
-                background-color: rgb(60, 60, 60);
-                border-style: outset;
-                border-width: 0px;
-                border-radius: 10px;
-                border-color: black;
-                font-size: 21px;
-                text-decoration: underline;                
-                padding: 10px;
-            }
-        """)
+        self.setWindowTitle("ChessMoves: Main")
+        self.resize(500, 300)
 
-        self.button_widgets = {}
+        # --------------------------------------------------
+        # attributes/variables
 
-        self.annotate_window = None
-        self.train_window = None
+        # --------------------------------------------------
+        # widgets
 
-        self.title = QLabel("ChessMoves")
-        self.title.setProperty('level', '1')
+        logo_wgt = QLabel()
+        logo_wgt.setPixmap(QPixmap("logo.png"))
 
-        # --------------------------------------------------------------------
-        # create layouts
+        # --------------------------------------------------
+        # layouts
 
-        button_layout = self.create_button_layout()
-        button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        button_lay = self.create_button_lay()
 
-        # --------------------------------------------------------------------
-        # organize layouts
+        master_lay = QVBoxLayout()
+        master_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        master_lay.addSpacing(20)
+        master_lay.addWidget(logo_wgt)
+        master_lay.addSpacing(50)
+        master_lay.addLayout(button_lay)
+        master_lay.setContentsMargins(50, 50, 50, 50)
+        self.setLayout(master_lay)
 
-        master_layout = QVBoxLayout()
-        master_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        master_layout.addWidget(self.title)
-        master_layout.addLayout(button_layout)
-        master_layout.setContentsMargins(30, 30, 30, 30)
-        self.setLayout(master_layout)
+    # --------------------------------------------------
 
-        # --------------------------------------------------------------------
-        # button connections
-
-        self.button_widgets["Annotate"].clicked.connect(self.open_annotate)
-        self.button_widgets["Train"].clicked.connect(self.open_train)
-        self.button_widgets["Quit"].clicked.connect(self.close)
-
-    def create_button_layout(self):
+    def create_button_lay(self):
         width = 250
+        spacing = 10
         layout = QVBoxLayout()
-        buttons = {
+        button_dict = {
             "Annotate":
-                {"tooltip": "Annotate games (A)",
-                 "width": width},
+                {"tooltip": "Annotate moves (A)",
+                 "width": width,
+                 "shortcut": "A",
+                 "callback": run_annotate,
+                 "level": "1"},
             "Train":
-                {"tooltip": "Train annotated moves/positions (T)",
-                 "width": width},
+                {"tooltip": "Train annotated moves (T)",
+                 "width": width,
+                 "shortcut": "T",
+                 "callback": run_train,
+                 "level": "1"},
             "Quit":
-                {"tooltip": "Quit (Esc)",
-                 "width": width}
+                {"tooltip": "Quit (Q)",
+                 "width": width,
+                 "shortcut": "Q",
+                 "callback": self.close,
+                 "level": "3"}
         }
 
-        for button_name, config in buttons.items():
-            button_widget = QPushButton(button_name)
-            button_widget.setToolTip(config["tooltip"])
-            if button_name in ["Annotate"]:
-                button_widget.setProperty('level', '1')
-            if button_name in ["Train"]:
-                button_widget.setProperty('level', '2')
-            if button_name in ["Quit"]:
-                button_widget.setProperty('level', '3')
+        for button_name, config in button_dict.items():
+            button_wgt = QPushButton(button_name)
 
-            self.button_widgets[button_name] = button_widget
-            self.button_widgets[button_name].setFixedWidth(
-                int(config["width"]))
-            layout.addWidget(button_widget)
+            button_wgt.setFixedWidth(int(config["width"]))
+            button_wgt.setToolTip(config["tooltip"])
+            button_wgt.setShortcut(config["shortcut"])
+            button_wgt.clicked.connect(config["callback"])
+            button_wgt.setProperty('level', config["level"])
 
+            layout.addWidget(button_wgt)
+            layout.addSpacing(spacing)
+
+        layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         return layout
 
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key.Key_A:
-            self.open_annotate()
-        elif event.key() == Qt.Key.Key_T:
-            self.open_train()
-        elif event.key() == Qt.Key.Key_R:
-            return
-        elif event.key() == Qt.Key.Key_Escape:
-            self.close()
 
-    def open_annotate(self):
-        self.annotate_window = run_annotate()
-
-    def open_train(self):
-        self.train_window = run_train()
-
+# --------------------------------------------------
 
 app = QApplication([])
+with open("styles.qss") as f:
+    app.setStyleSheet(f.read())
 window = MasterWindow()
 window.show()
 app.exec()

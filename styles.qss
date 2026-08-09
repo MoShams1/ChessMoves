@@ -1,0 +1,43 @@
+QWidget {
+    background: rgb(60, 60, 60);
+    color: rgb(200, 200, 200);
+}
+
+QLabel[level="1"] {
+    font-family: Georgia;
+    font-size: 45px;
+    margin: 40px;
+}
+
+QPushButton[level="1"],
+QPushButton[level="2"],
+QPushButton[level="3"] {
+    border-radius: 10px;
+    font-size: 20px;
+    padding: 10px;
+}
+
+QPushButton[level="1"]:pressed,
+QPushButton[level="2"]:pressed,
+QPushButton[level="3"]:pressed {
+    border-color: rgb(150, 150, 150);
+    border-style: solid;
+    border-width: 3px;
+}
+
+QPushButton[level="1"] {
+    background-color: rgb(60, 100, 170);
+
+}
+
+QPushButton[level="2"] {
+    background-color: rgb(100, 100, 100);
+}
+
+QPushButton[level="3"] {
+    background-color: rgb(60, 60, 60);
+    border-color: rgb(80, 80, 80);
+    border-style: solid;
+    border-width: 3px;
+    text-decoration: underline;
+}

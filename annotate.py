@@ -31,14 +31,9 @@ def run_annotate():
 
             self.setWindowTitle("ChessMoves: Annotate")
             self.resize(1000, 900)
-            self.setStyleSheet("""
-            QWidget {
-            color: #D3D3D3;
-            }
-            """)
 
-            # --------------------------------------------------------------------
-            #
+            # --------------------------------------------------
+            # attributes/variables
 
             self.game = None
             self.existing_game_id = None
@@ -51,8 +46,8 @@ def run_annotate():
             self.comment_widget = QPlainTextEdit()
             self.question_widget = QPlainTextEdit()
 
-            # --------------------------------------------------------------------
-            # create widgets
+            # --------------------------------------------------
+            # widgets
 
             self.player_top_widget = QLabel()
             self.player_bottom_widget = QLabel()
@@ -71,8 +66,8 @@ def run_annotate():
 
             self.game_panel_widget = GamePanel(mode="annotate")
 
-            # --------------------------------------------------------------------
-            # create styles
+            # --------------------------------------------------
+            # styles
 
             self.tag_header_font = QFont()
             self.tag_header_font.setBold(True)
@@ -80,8 +75,8 @@ def run_annotate():
             self.message_font = QFont()
             self.message_font.setPointSize(10)
 
-            # --------------------------------------------------------------------
-            # create layouts
+            # --------------------------------------------------
+            # layouts
 
             tag_layout = self.create_tag_layout()
             button_layout = self.create_button_layout()
@@ -239,7 +234,10 @@ def run_annotate():
             buttons = {
                 "Load": {"tooltip": "Load game (L)",
                          "width": width_large,
-                         "spacing": spacing_small},
+                         "spacing": spacing_small,
+                         "shortcut": "L",
+                         "callback": None,
+                         "level": "1"},
                 "Save": {"tooltip": "Save analysis (S)",
                          "width": width_large,
                          "spacing": spacing_large},
