@@ -56,8 +56,10 @@ def run_train():
 
             self.effect = QGraphicsOpacityEffect()
 
-            self.learning_idx_label = QLabel("LEARN")
-            self.times_practiced_label = QLabel()
+            self.times_practiced_header = QLabel("Times Practiced: ")
+            self.times_practiced_value = QLabel()
+            self.learning_idx_header = QLabel("Learning Index:")
+            self.learning_idx_value = QLabel()
 
             button_layout = self.create_button_layout()
             button_layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
@@ -80,8 +82,8 @@ def run_train():
             right_layout.addWidget(QLabel("Could you answer the question(s) "
                                           "above?"))
             right_layout.addLayout(right_button_layout)
-            right_layout.addWidget(self.learning_idx_label)
-            right_layout.addWidget(self.times_practiced_label)
+            learning_info_layout = self.create_learning_info_layout()
+            right_layout.addLayout(learning_info_layout)
 
             master_layout_top = QHBoxLayout()
             master_layout_top.addWidget(self.game_panel_widget, 4)
@@ -153,9 +155,9 @@ def run_train():
             self.questions_value_widget.setText(self.move_row["questions"])
             self.comments_value_widget.setText(self.move_row["comments"])
 
-            self.learning_idx_label.setText(
+            self.learning_idx_value.setText(
                 str(self.move_row["learning_idx"]))
-            self.times_practiced_label.setText(
+            self.times_practiced_value.setText(
                 str(self.move_row["times_practiced"]))
 
         def create_button_layout(self):
@@ -165,7 +167,7 @@ def run_train():
             spacing_large = 15
             layout = QHBoxLayout()
             buttons = {
-                "Reaveal": {"tooltip": "Reveal position information (R)",
+                "Reveal": {"tooltip": "Reveal position information (R)",
                             "width": width_large,
                             "spacing": spacing_large},
                 "URL": {"tooltip": "Copy game URL (U)",
@@ -217,6 +219,22 @@ def run_train():
                 self.button_widgets[button_name] = button_widget
                 layout.addWidget(button_widget)
                 layout.addSpacing(int(config["spacing"]))
+
+            return layout
+
+        def create_learning_info_layout(self):
+            layout = QVBoxLayout()
+
+            layout1 = QHBoxLayout()
+            layout1.addWidget(self.times_practiced_header)
+            layout1.addWidget(self.times_practiced_value)
+
+            layout2 = QHBoxLayout()
+            layout2.addWidget(self.learning_idx_header)
+            layout2.addWidget(self.learning_idx_value)
+
+            layout.addLayout(layout1)
+            layout.addLayout(layout2)
 
             return layout
 

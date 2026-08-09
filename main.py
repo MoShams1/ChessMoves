@@ -39,7 +39,7 @@ class MasterWindow(QWidget):
 
         master_layout = QVBoxLayout()
         main_message.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        master_layout.addWidget(main_message)
+        # master_layout.addWidget(main_message)
         master_layout.addLayout(button_layout)
         master_layout.setContentsMargins(30, 30, 30, 30)
         self.setLayout(master_layout)

@@ -11,12 +11,9 @@ ANNOT0ATE
 ------------------------------------
 TRAIN
 
-[] >>> show learning index and times practiced of each move
-[] >>> check if the probability adjustment works properly
-[] >>> probability of each move should be in relation to other moves
 [] create one effect for each item that should be revealed
-
 
 ------------------------------------
 DEBUG
 
+[] button presses before a game has been loaded produce errors
