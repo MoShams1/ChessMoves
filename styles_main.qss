@@ -1,3 +1,10 @@
+QWidget {
+    background: rgb(50, 50, 50);
+    font-family: Helvetica Neue;
+    font-size: 14px;
+    color: rgb(200, 200, 200);
+}
+
 QPushButton[level="1"],
 QPushButton[level="2"],
 QPushButton[level="3"] {

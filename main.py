@@ -17,6 +17,9 @@ class MasterWindow(QWidget):
         # --------------------------------------------------
         # attributes/variables
 
+        self.annotate_window = None
+        self.train_window = None
+
         # --------------------------------------------------
         # widgets
 
@@ -48,13 +51,13 @@ class MasterWindow(QWidget):
                 {"tooltip": "Annotate moves (A)",
                  "width": width,
                  "shortcut": "A",
-                 "callback": run_annotate,
+                 "callback": self.open_annotate,
                  "level": "1"},
             "Train":
                 {"tooltip": "Train annotated moves (T)",
                  "width": width,
                  "shortcut": "T",
-                 "callback": run_train,
+                 "callback": self.open_train,
                  "level": "1"},
             "Quit":
                 {"tooltip": "Quit (Q)",
@@ -79,6 +82,13 @@ class MasterWindow(QWidget):
         layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
         return layout
 
+    def open_annotate(self):
+        self.annotate_window = run_annotate()
+        self.annotate_window.show()
+
+    def open_train(self):
+        self.train_window = run_train()
+        self.train_window.show()
 
 # --------------------------------------------------
 

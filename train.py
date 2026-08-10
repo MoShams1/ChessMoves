@@ -25,11 +25,6 @@ def run_train():
 
             self.setWindowTitle("ChessMoves: Train")
             self.resize(1000, 800)
-            self.setStyleSheet("""
-            QWidget {
-            color: #D3D3D3;
-            }
-            """)
 
             self.flip_flag = True
             self.global_opacity = 0
@@ -157,7 +152,7 @@ def run_train():
                 cost_val=self.move_row["move_cost"],
                 eval_val=self.move_row["eval_before"],
             )
-            self.game_panel_widget.set_move_cost_color()
+            self.game_panel_widget.set_cost_color()
             self.effect.setOpacity(self.global_opacity)
 
             self.questions_value_widget.setText(self.move_row["questions"])
@@ -413,5 +408,4 @@ def run_train():
             self.show_message(message)
 
     window = TrainWindow()
-    window.show()
     return window

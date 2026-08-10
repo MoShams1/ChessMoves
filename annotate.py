@@ -775,5 +775,4 @@ def run_annotate():
     window = AnnotateWindow()
     with open("styles.qss") as f:
         window.setStyleSheet(f.read())
-    window.show()
     return window
