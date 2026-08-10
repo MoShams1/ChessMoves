@@ -1,13 +1,12 @@
 QWidget {
     background: rgb(50, 50, 50);
     font-family: Helvetica Neue;
-    font-size: 14px;
+    font-size: 12px;
     color: rgb(200, 200, 200);
 }
 
 QLabel[type="player"] {
     font: bold;
-    font-size: 16px;
     color: rgb(150, 150, 150);
 }
 
@@ -15,9 +14,18 @@ QLabel[type="eval-header"] {
     font: bold;
 }
 
+QLabel[type="tag-header"] {
+    font-size: 13px;
+    font: bold;
+    color: rgb(120, 120, 120);
+}
+
+QLabel[type="tag"] {
+}
+
 QPushButton {
-    font-size: 16px;
-    padding: 10px, 10px;
+    font-size: 14px;
+    padding: 5px, 5px;
 }
 
 QPushButton[level="1"],
@@ -39,11 +47,11 @@ QPushButton[level="1"] {
 }
 
 QPushButton[level="2"] {
-    background-color: rgb(100, 100, 100);
+    background-color: rgb(80, 80, 80);
 }
 
 QPushButton[level="3"] {
-    background-color: rgb(60, 60, 60);
+    background-color: rgb(50, 50, 50);
     border-color: rgb(80, 80, 80);
     border-style: solid;
     border-width: 1px;

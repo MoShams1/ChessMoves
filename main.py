@@ -44,7 +44,7 @@ class MasterWindow(QWidget):
 
     def create_button_lay(self):
         width = 250
-        spacing = -2
+        spacing = -5
         layout = QVBoxLayout()
         button_dict = {
             "Annotate":

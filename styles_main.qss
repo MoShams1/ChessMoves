@@ -27,11 +27,11 @@ QPushButton[level="1"] {
 }
 
 QPushButton[level="2"] {
-    background-color: rgb(100, 100, 100);
+    background-color: rgb(80, 80, 80);
 }
 
 QPushButton[level="3"] {
-    background-color: rgb(60, 60, 60);
+    background-color: rgb(50, 50, 50);
     border-color: rgb(80, 80, 80);
     border-style: solid;
     border-width: 3px;

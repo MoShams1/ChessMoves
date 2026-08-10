@@ -4,7 +4,6 @@ import sqlite3
 import chess.pgn
 import chess.svg
 import database as db
-from game_panel import GamePanel
 from personal_info import player_names
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont

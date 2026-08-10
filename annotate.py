@@ -2,12 +2,12 @@ import io
 import os
 import chess
 import sqlite3
+import cairosvg
 import requests
 import chess.pgn
 import chess.svg
 import database as db
 from tags import tag_source
-from game_panel import GamePanel
 from personal_info import lichess_study_token, player_names
 from PyQt6.QtCore import Qt, QTimer, QPropertyAnimation, QEasingCurve
 from PyQt6.QtGui import QPixmap, QFont
@@ -33,7 +33,7 @@ def run_annotate():
             self.resize(1000, 900)
 
             # --------------------------------------------------
-            # attributes/variables
+            # attributes/variables/lists/dictionaries
 
             self.game = None
             self.existing_game_id = None
@@ -46,60 +46,59 @@ def run_annotate():
             self.comment_widget = QPlainTextEdit()
             self.question_widget = QPlainTextEdit()
 
+            self.btn_wgt_dict = {}
+            self.tag_wgt_dict = {}
+
             # --------------------------------------------------
             # widgets
 
-            self.player_top_widget = QLabel()
-            self.player_bottom_widget = QLabel()
+            self.player_top_wgt = QLabel()
+            self.player_top_wgt.setProperty('type', 'player')
+            self.player_top_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-            self.image_board_widget = QLabel()
+            self.player_bottom_wgt = QLabel()
+            self.player_bottom_wgt.setProperty('type', 'player')
+            self.player_bottom_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+            self.board_wgt = QLabel()
             self.pixmap = QPixmap()
 
-            self.move_notation_widget = QLabel()
-            self.move_cost_widget = QLabel()
-            self.eval_widget = QLabel()
-
-            self.button_widgets = {}
-
+            self.notation_val_wgt = QLabel()
+            self.cost_val_wgt = QLabel()
+            self.eval_val_wgt = QLabel()
+            
             self.rb_group = QButtonGroup()
-            self.tag_widgets = {}
-
-            self.game_panel_widget = GamePanel()
-
-            # --------------------------------------------------
-            # styles
-
-            self.tag_header_font = QFont()
-            self.tag_header_font.setBold(True)
-
-            self.message_font = QFont()
-            self.message_font.setPointSize(10)
 
             # --------------------------------------------------
             # layouts
 
-            tag_layout = self.create_tag_layout()
-            game_button_layout = self.create_game_button_layout()
+            board_lay = self.create_board_layout()
+            eval_lay = self.create_eval_layout()
+            copy_btn_lay = self.create_copy_btn_layout()
+            game_btn_lay = self.create_game_btn_layout()
+
+            tag_lay = self.create_tag_lay()
             textbox_layout = self.create_textbox_layout()
 
-            # --------------------------------------------------------------------
-            # organize layouts
+            left_lay = QVBoxLayout()
+            left_lay.addLayout(board_lay)
+            left_lay.addLayout(eval_lay)
+            left_lay.addLayout(copy_btn_lay)
+            left_lay.addLayout(game_btn_lay)
+            
+            right_lay = QVBoxLayout()
+            right_lay.addLayout(tag_lay)
+            
+            master_lay = QHBoxLayout()
+            master_lay.addLayout(left_lay, 4)
+            master_lay.addLayout(right_lay, 3)
 
-            master_layout_top = QHBoxLayout()
-            master_layout_top.addWidget(self.game_panel_widget, 4)
-            master_layout_top.addLayout(tag_layout, 3)
-
-            master_layout = QVBoxLayout()
-            master_layout.addLayout(master_layout_top)
-            master_layout.addLayout(textbox_layout)
-            master_layout.addLayout(game_button_layout)
-            master_layout.setContentsMargins(50, 50, 50, 50)
-            self.setLayout(master_layout)
+            self.setLayout(master_lay)
             self.setFocus()
 
             # --------------------------------------------------------------------
 
-            self.game_panel_widget.show_position(
+            self.show_position(
                 board=chess.Board(),
                 orientation=self.flip_flag,
             )
@@ -107,26 +106,26 @@ def run_annotate():
             # --------------------------------------------------------------------
             # button connections
 
-            # self.button_widgets["Load"].clicked.connect(self.load_game)
-            # self.button_widgets["Save"].clicked.connect(
+            # self.btn_wgt_dict["Load"].clicked.connect(self.load_game)
+            # self.btn_wgt_dict["Save"].clicked.connect(
             #     self.save_analysis_to_db)
 
-            # self.button_widgets["URL"].clicked.connect(
+            # self.btn_wgt_dict["URL"].clicked.connect(
             #     lambda: self.copy_to_clipboard(
             #         self.game.url,
             #         "Game URL copied to clipboard"))
-            # self.button_widgets["PGN"].clicked.connect(
+            # self.btn_wgt_dict["PGN"].clicked.connect(
             #     lambda: self.copy_to_clipboard(
             #         self.game.pgn,
             #         "Game PGN copied to clipboard"))
-            # self.button_widgets["FEN"].clicked.connect(
+            # self.btn_wgt_dict["FEN"].clicked.connect(
             #     lambda: self.copy_to_clipboard(
             #         self.game.board.fen(),
             #         "Position copied to clipboard"))
             #
-            # self.button_widgets["Clear"].clicked.connect(self.clear_tags_in_ui)
-            # self.button_widgets["Reset"].clicked.connect(self.reset_game_tags)
-            # self.button_widgets["Close"].clicked.connect(self.close)
+            # self.btn_wgt_dict["Clear"].clicked.connect(self.clear_tags_in_ui)
+            # self.btn_wgt_dict["Reset"].clicked.connect(self.reset_game_tags)
+            # self.btn_wgt_dict["Close"].clicked.connect(self.close)
 
         # ///////////////////////////////////////////////////////////////////////
         # BOARD BEHAVIOR AND VISUALS
@@ -141,41 +140,82 @@ def run_annotate():
                 else:
                     prefix = f"{self.current_move_num // 2}... "
 
-                self.move_notation_widget.setText(
+                self.notation_val_wgt.setText(
                     f"{prefix}{self.game.moves[self.current_move_num - 1]}")
 
-                self.move_cost_widget.setText(
+                self.cost_val_wgt.setText(
                     f"{self.game.cost_list[self.current_move_num - 1]}")
 
                 current_eval = self.game.eval_list[self.current_move_num - 1]
 
                 if isinstance(current_eval, float):
                     if not (current_eval < 0):
-                        self.eval_widget.setText(f"+{current_eval}")
+                        self.eval_val_wgt.setText(f"+{current_eval}")
                     else:
-                        self.eval_widget.setText(f"{current_eval}")
+                        self.eval_val_wgt.setText(f"{current_eval}")
 
                 if isinstance(current_eval, str):
-                    self.eval_widget.setText(current_eval)
+                    self.eval_val_wgt.setText(current_eval)
 
             # else:
-            #     self.move_notation_widget.setText("-")
-            #     self.move_cost_widget.setText("-")
-            #     self.eval_widget.setText("-")
+            #     self.notation_val_wgt.setText("-")
+            #     self.cost_val_wgt.setText("-")
+            #     self.eval_val_wgt.setText("-")
 
-            self.game_panel_widget.show_position(
+            self.show_position(
                 board=self.game.board,
                 white_player=self.game.white,
                 black_player=self.game.black,
                 orientation=self.flip_flag,
                 last_move=self.move_obj,
-                notation_val=self.move_notation_widget.text(),
-                cost_val=self.move_cost_widget.text(),
-                eval_val=self.eval_widget.text(),
+                notation_val=self.notation_val_wgt.text(),
+                cost_val=self.cost_val_wgt.text(),
+                eval_val=self.eval_val_wgt.text(),
             )
 
             if self.current_move_num > 0:
-                self.game_panel_widget.set_cost_color()
+                self.set_cost_color()
+
+        def show_position(self, board, orientation,
+                          white_player="---", black_player="---",
+                          last_move=None,
+                          notation_val="---", cost_val="---", eval_val="---"):
+            svg = chess.svg.board(
+                board=board,
+                orientation=orientation,
+                lastmove=last_move,
+                coordinates=True,
+                size=450,
+                colors={
+                    "square light": "#B0AA98",
+                    "square dark": "#827A68",
+                    "square light lastmove": "#a1ad68",
+                    "square dark lastmove": "#a1ad68",
+                },
+            )
+
+            pixmap = QPixmap()
+            pixmap.loadFromData(cairosvg.svg2png(bytestring=svg.encode()))
+            self.board_wgt.setPixmap(pixmap)
+
+            if orientation:
+                self.player_top_wgt.setText(black_player)
+                self.player_bottom_wgt.setText(white_player)
+            else:
+                self.player_top_wgt.setText(white_player)
+                self.player_bottom_wgt.setText(black_player)
+
+            self.notation_val_wgt.setText(str(notation_val))
+            self.cost_val_wgt.setText(str(cost_val))
+            self.eval_val_wgt.setText(str(eval_val))
+
+        def create_board_layout(self):
+            layout = QVBoxLayout()
+            layout.addWidget(self.player_top_wgt)
+            layout.addWidget(self.board_wgt)
+            layout.addWidget(self.player_bottom_wgt)
+            layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            return layout
 
         def next_move(self):
             if (
@@ -213,64 +253,88 @@ def run_annotate():
                     self.current_move_num - 1]
 
                 if self.current_move_num == 0:
-                    self.move_notation_widget.setText("-")
-                    self.move_cost_widget.setText("-")
-                    self.eval_widget.setText("-")
+                    self.notation_val_wgt.setText("-")
+                    self.cost_val_wgt.setText("-")
+                    self.eval_val_wgt.setText("-")
                     self.move_obj = None
 
                 self.game.board.pop()
                 self.update_board()
 
-        # def create_button_layout(self):
-        #     width_small = 50
-        #     width_large = 70
-        #     spacing_small = -10
-        #     spacing_large = 15
-        #     layout = QHBoxLayout()
-        #     buttons = {
-        #         "Load": {"tooltip": "Load game (L)",
-        #                  "width": width_large,
-        #                  "spacing": spacing_small,
-        #                  "shortcut": "L",
-        #                  "callback": None,
-        #                  "level": "1"},
-        #         "Save": {"tooltip": "Save analysis (S)",
-        #                  "width": width_large,
-        #                  "spacing": spacing_large},
-        #         "URL": {"tooltip": "Copy game URL (U)",
-        #                 "width": width_small,
-        #                 "spacing": spacing_small},
-        #         "PGN": {"tooltip": "Copy game PGN (P)",
-        #                 "width": width_small,
-        #                 "spacing": spacing_small},
-        #         "FEN": {"tooltip": "Copy position FEN (E)",
-        #                 "width": width_small,
-        #                 "spacing": spacing_large},
-        #         "Clear": {"tooltip": "Clear move tags (C)",
-        #                   "width": width_large,
-        #                   "spacing": spacing_small},
-        #         "Reset": {"tooltip": "Reset game tags (R)",
-        #                   "width": width_large,
-        #                   "spacing": spacing_small},
-        #         "Close": {"tooltip": "Close window (Esc)",
-        #                   "width": width_large,
-        #                   "spacing": spacing_small}
-        #     }
-        #
-        #     for button_name, config in buttons.items():
-        #         button_widget = QPushButton(button_name)
-        #         button_widget.setToolTip(config["tooltip"])
-        #         button_widget.setFixedWidth(config["width"])
-        #
-        #         self.button_widgets[button_name] = button_widget
-        #         layout.addWidget(button_widget)
-        #         layout.addSpacing(int(config["spacing"]))
-        #
-        #     return layout
+        def create_eval_layout(self):
+            layout = QHBoxLayout()
 
-        def create_game_button_layout(self):
-            width = 100
+            layout_hdr = QVBoxLayout()
+            layout_val = QVBoxLayout()
+
+            info_dict = {
+                "Move:": {"type": "eval-header",
+                          "val": self.notation_val_wgt},
+                "Cost:": {"type": "eval-header",
+                          "val": self.cost_val_wgt},
+                "Evaluation:": {"type": "eval-header",
+                                "val": self.eval_val_wgt},
+            }
+            for label, config in info_dict.items():
+                hdr_wgt = QLabel(label)
+                hdr_wgt.setProperty("type", config["type"])
+                layout_hdr.addWidget(hdr_wgt)
+                layout_val.addWidget(config["val"])
+
+            layout.addLayout(layout_hdr)
+            layout.addSpacing(10)
+            layout.addLayout(layout_val)
+
+            layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+            layout.setContentsMargins(20, 30, 0, 0)
+
+            return layout
+
+        def create_copy_btn_layout(self):
+            layout = QHBoxLayout()
+
+            width = 80
             spacing = -2
+
+            button_dict = {
+                "URL":
+                    {"tooltip": "Copy game URL (U)",
+                     "width": width,
+                     "shortcut": "U",
+                     "callback": self.close,
+                     "level": "2"},
+                "PGN":
+                    {"tooltip": "Copy game PGN (P)",
+                     "width": width,
+                     "shortcut": "P",
+                     "callback": self.close,
+                     "level": "2"},
+                "FEN":
+                    {"tooltip": "Copy position FEN (E)",
+                     "width": width,
+                     "shortcut": "E",
+                     "callback": self.close,
+                     "level": "2"}
+            }
+
+            for button_name, config in button_dict.items():
+                button_wgt = QPushButton(button_name)
+
+                button_wgt.setFixedWidth(int(config["width"]))
+                button_wgt.setToolTip(config["tooltip"])
+                button_wgt.setShortcut(config["shortcut"])
+                button_wgt.clicked.connect(config["callback"])
+                button_wgt.setProperty("level", config["level"])
+
+                layout.addWidget(button_wgt)
+                layout.addSpacing(spacing)
+
+            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            return layout
+        
+        def create_game_btn_layout(self):
+            width = 250
+            spacing = -5
             layout = QVBoxLayout()
             buttons = {
                 "Load": {"tooltip": "Load game (L)",
@@ -289,7 +353,6 @@ def run_annotate():
                           "callback": self.close,
                           "level": "3"}
             }
-
             for button_name, config in buttons.items():
                 button_wgt = QPushButton(button_name)
                 button_wgt.setToolTip(config["tooltip"])
@@ -301,10 +364,11 @@ def run_annotate():
                 layout.addWidget(button_wgt)
                 layout.addSpacing(spacing)
 
-            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter |
+                                Qt.AlignmentFlag.AlignTop)
             return layout
 
-        def create_tag_layout(self):
+        def create_tag_lay(self):
 
             layout = QHBoxLayout()
             layout.setAlignment(Qt.AlignmentFlag.AlignTop |
@@ -319,43 +383,35 @@ def run_annotate():
             for key in list(tag_source.keys()):
 
                 header = key.split('_')[0]
-                options = tag_source[key]
-                box_type = key.split('_')[1]
+                tags = tag_source[key]
+                box_type = key.split('_')[1]                
 
+                tag_hdr_wgt = QLabel(header)
+                tag_hdr_wgt.setProperty("type", "tag-header")
+                
                 layout_block = QVBoxLayout()
-                layout_block.addSpacing(20)
+                layout_block.addSpacing(20)                
+                layout_block.addWidget(tag_hdr_wgt)
+                layout_block.addSpacing(7)
 
-                header_widget = QLabel(header)
-                header_widget.setFont(self.tag_header_font)
-                layout_block.addWidget(header_widget)
+                tag_wgt = None
+                for tag in tags:
+                    if box_type == "cb":
+                        tag_wgt = QCheckBox(tag)
+                    if box_type == "rb":
+                        tag_wgt = QRadioButton(tag)
+                        self.rb_group.addButton(tag_wgt)
+                    tag_wgt.setProperty("type", "tag")
+                    self.tag_wgt_dict[tag] = tag_wgt
+                    layout_block.addWidget(tag_wgt)
 
-                if box_type == "cb":
-                    for option in options:
-                        option_widget = QCheckBox(option)
-                        self.tag_widgets[option] = option_widget
-                        layout_block.addWidget(option_widget)
 
-                elif box_type == "rb":
-                    for option in options:
-                        option_widget = QRadioButton(option)
-                        self.rb_group.addButton(option_widget)
-                        self.tag_widgets[option] = option_widget
-                        layout_block.addWidget(option_widget)
-
-                else:
-                    return
-
-                if (
-                        header == "GENERAL" or
-                        header == "GAME PHASE" or
-                        header == "DIAGNOSIS" or
-                        header == "MISSED RESPONSE"):
+                if header in ["GENERAL", "GAME PHASE", "GIAGNOSIS",
+                              "MISSED RESPONSE"]:
                     layout_left.addLayout(layout_block)
                     layout_left.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
-                if (
-                        header == "TACTICAL THEME" or
-                        header == "POSITIONAL THEME"):
+                if header in ["TACTICAL THEME", "POSITIONAL THEME"]:
                     layout_right.addLayout(layout_block)
                     layout_right.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
@@ -455,7 +511,7 @@ def run_annotate():
 
         def read_tags_from_ui(self):
             tag_list = []
-            for key, value in self.tag_widgets.items():
+            for key, value in self.tag_wgt_dict.items():
                 if value.isChecked():
                     tag_list.append(key)
             return tag_list
@@ -467,12 +523,12 @@ def run_annotate():
             self.game.questions_list[move_nr - 1] = (
                 self.question_widget.toPlainText())
             self.game.notation_list[
-                move_nr - 1] = self.move_notation_widget.text()
+                move_nr - 1] = self.notation_val_wgt.text()
 
         def load_tags_to_ui(self, move_nr):
             tag_list = self.game.tag_move_list[move_nr - 1]
             for tag in tag_list:
-                self.tag_widgets[tag].setChecked(True)
+                self.tag_wgt_dict[tag].setChecked(True)
             self.comment_widget.setPlainText(self.game.comments_list[
                                                  move_nr - 1])
             self.question_widget.setPlainText(self.game.questions_list[
@@ -480,7 +536,7 @@ def run_annotate():
 
         def clear_tags_in_ui(self):
             self.rb_group.setExclusive(False)
-            for value in self.tag_widgets.values():
+            for value in self.tag_wgt_dict.values():
                 value.setChecked(False)
             self.rb_group.setExclusive(True)
             self.comment_widget.clear()
@@ -663,6 +719,29 @@ def run_annotate():
                 self.setFocus()
 
             super().mousePressEvent(event)
+
+        def set_cost_color(self):
+            cost = self.cost_val_wgt.text()
+
+            if cost in ("Unavoidable Checkmate", "Missed Checkmate"):
+                color = "#EC7A5A"
+            else:
+                cost = float(cost)
+                if .5 <= cost < 1:
+                    color = "#4AA8CF"
+                elif 1 <= cost < 3:
+                    color = "#E0B953"
+                elif cost >= 3:
+                    color = "#EC7A5A"
+                else:
+                    color = "#D3D3D3"
+
+            self.cost_val_wgt.setStyleSheet(f"color: {color}")
+            self.notation_val_wgt.setStyleSheet(f"color: {color}")
+
+        def copy_to_clipboard(self, text, message):
+            QApplication.clipboard().setText(text)
+            # self.show_message(message)
 
     class Game:
 
