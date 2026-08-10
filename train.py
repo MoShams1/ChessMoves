@@ -57,7 +57,7 @@ def run_train():
 
             self.button_widgets = {}
 
-            self.game_panel_widget = GamePanel(mode="train")
+            self.game_panel_widget = GamePanel()
 
             self.message_font = QFont()
             self.message_font.setPointSize(10)
@@ -153,9 +153,9 @@ def run_train():
                 black_player=self.game_row["black"],
                 orientation=self.flip_flag,
                 last_move=chess.Move.from_uci(self.move_row["last_move_uci"]),
-                notation=self.move_row["move_notation"],
-                cost=self.move_row["move_cost"],
-                evaluation=self.move_row["eval_before"],
+                notation_val=self.move_row["move_notation"],
+                cost_val=self.move_row["move_cost"],
+                eval_val=self.move_row["eval_before"],
             )
             self.game_panel_widget.set_move_cost_color()
             self.effect.setOpacity(self.global_opacity)

@@ -41,7 +41,7 @@ class MasterWindow(QWidget):
 
     def create_button_lay(self):
         width = 250
-        spacing = 10
+        spacing = -2
         layout = QVBoxLayout()
         button_dict = {
             "Annotate":
@@ -71,7 +71,7 @@ class MasterWindow(QWidget):
             button_wgt.setToolTip(config["tooltip"])
             button_wgt.setShortcut(config["shortcut"])
             button_wgt.clicked.connect(config["callback"])
-            button_wgt.setProperty('level', config["level"])
+            button_wgt.setProperty("level", config["level"])
 
             layout.addWidget(button_wgt)
             layout.addSpacing(spacing)
@@ -83,8 +83,8 @@ class MasterWindow(QWidget):
 # --------------------------------------------------
 
 app = QApplication([])
-with open("styles.qss") as f:
-    app.setStyleSheet(f.read())
 window = MasterWindow()
+with open("styles_main.qss") as f:
+    window.setStyleSheet(f.read())
 window.show()
 app.exec()
