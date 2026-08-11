@@ -6,21 +6,28 @@ QWidget {
 }
 
 QLabel[type="player"] {
-    font: bold;
+    font-weight: bold;
     color: rgb(150, 150, 150);
 }
 
 QLabel[type="eval-header"] {
-    font: bold;
+    font-weight: bold;
+    color: rgb(150, 150, 150);
 }
 
 QLabel[type="tag-header"] {
     font-size: 13px;
-    font: bold;
+    font-weight: bold;
+    letter-spacing: 2px;
     color: rgb(120, 120, 120);
 }
 
-QLabel[type="tag"] {
+QCheckBox[type="tag"] {
+    letter-spacing: 0.5px;
+}
+
+QRadioButton[type="tag"] {
+    letter-spacing: 0.5px;
 }
 
 QPushButton {

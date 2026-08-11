@@ -8,6 +8,7 @@ GENERAL
 ANNOT0ATE
 
 [] use tab key to switch focus across window, comments, questions
+[] reset button should scroll back to the beginning of the game
 
 ------------------------------------
 TRAIN

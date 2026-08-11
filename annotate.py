@@ -30,7 +30,7 @@ def run_annotate():
             super().__init__()
 
             self.setWindowTitle("ChessMoves: Annotate")
-            self.resize(1000, 900)
+            self.resize(950, 950)
 
             # --------------------------------------------------
             # attributes/variables/lists/dictionaries
@@ -53,12 +53,7 @@ def run_annotate():
             # widgets
 
             self.player_top_wgt = QLabel()
-            self.player_top_wgt.setProperty('type', 'player')
-            self.player_top_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
-
             self.player_bottom_wgt = QLabel()
-            self.player_bottom_wgt.setProperty('type', 'player')
-            self.player_bottom_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             self.board_wgt = QLabel()
             self.pixmap = QPixmap()
@@ -66,32 +61,36 @@ def run_annotate():
             self.notation_val_wgt = QLabel()
             self.cost_val_wgt = QLabel()
             self.eval_val_wgt = QLabel()
-            
+
             self.rb_group = QButtonGroup()
 
             # --------------------------------------------------
             # layouts
 
             board_lay = self.create_board_layout()
-            eval_lay = self.create_eval_layout()
+            info_lay = self.create_info_layout()
             copy_btn_lay = self.create_copy_btn_layout()
             game_btn_lay = self.create_game_btn_layout()
-
             tag_lay = self.create_tag_lay()
             textbox_layout = self.create_textbox_layout()
 
             left_lay = QVBoxLayout()
             left_lay.addLayout(board_lay)
-            left_lay.addLayout(eval_lay)
+            left_lay.addSpacing(40)
+            left_lay.addLayout(info_lay)
+            left_lay.addSpacing(40)
             left_lay.addLayout(copy_btn_lay)
+            left_lay.addSpacing(20)
             left_lay.addLayout(game_btn_lay)
-            
+
             right_lay = QVBoxLayout()
             right_lay.addLayout(tag_lay)
-            
+
             master_lay = QHBoxLayout()
-            master_lay.addLayout(left_lay, 4)
-            master_lay.addLayout(right_lay, 3)
+            master_lay.addLayout(left_lay)
+            master_lay.addLayout(right_lay)
+
+            master_lay.setContentsMargins(75, 75, 75, 75)
 
             self.setLayout(master_lay)
             self.setFocus()
@@ -157,11 +156,6 @@ def run_annotate():
                 if isinstance(current_eval, str):
                     self.eval_val_wgt.setText(current_eval)
 
-            # else:
-            #     self.notation_val_wgt.setText("-")
-            #     self.cost_val_wgt.setText("-")
-            #     self.eval_val_wgt.setText("-")
-
             self.show_position(
                 board=self.game.board,
                 white_player=self.game.white,
@@ -197,6 +191,11 @@ def run_annotate():
             pixmap = QPixmap()
             pixmap.loadFromData(cairosvg.svg2png(bytestring=svg.encode()))
             self.board_wgt.setPixmap(pixmap)
+
+            self.player_top_wgt.setProperty('type', 'player')
+            self.player_top_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.player_bottom_wgt.setProperty('type', 'player')
+            self.player_bottom_wgt.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
             if orientation:
                 self.player_top_wgt.setText(black_player)
@@ -261,7 +260,9 @@ def run_annotate():
                 self.game.board.pop()
                 self.update_board()
 
-        def create_eval_layout(self):
+        def create_info_layout(self):
+
+            spacing = 10
             layout = QHBoxLayout()
 
             layout_hdr = QVBoxLayout()
@@ -281,22 +282,62 @@ def run_annotate():
                 layout_hdr.addWidget(hdr_wgt)
                 layout_val.addWidget(config["val"])
 
-            layout.addLayout(layout_hdr)
-            layout.addSpacing(10)
-            layout.addLayout(layout_val)
+            layout.addWidget(self.create_navi_button()[0],
+                             Qt.AlignmentFlag.AlignLeft)
+            layout.addSpacing(spacing)
+            layout.addLayout(layout_hdr, 2)
+            layout.addLayout(layout_val, 5)
+            layout.addSpacing(spacing)
+            layout.addWidget(self.create_navi_button()[1],
+                             Qt.AlignmentFlag.AlignRight)
 
-            layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-            layout.setContentsMargins(20, 30, 0, 0)
+            layout.setContentsMargins(50, 0, 50, 0)
+
+            # layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
+
+            # put info layout to a container for a fixed width
+            # wgt = QWidget()
+            # wgt.setFixedSize(300, 200)
+            # wgt.setLayout(layout)
 
             return layout
+
+        def create_navi_button(self):
+            width = 35
+            height = 50
+            btn_wgt_list = []
+            btn_dict = {
+                "<":
+                    {"tooltip": "Previous move (<)",
+                     "shortcut": "Left",
+                     "callback": self.previous_move,
+                     "level": "2"},
+                ">":
+                    {"tooltip": "Next move (>)",
+                     "shortcut": "Right",
+                     "callback": self.next_move,
+                     "level": "2"}
+            }
+            for button_name, config in btn_dict.items():
+                btn_wgt = QPushButton(button_name)
+
+                btn_wgt.setFixedSize(width, height)
+                btn_wgt.setToolTip(config["tooltip"])
+                btn_wgt.setShortcut(config["shortcut"])
+                btn_wgt.clicked.connect(config["callback"])
+                btn_wgt.setProperty("level", config["level"])
+
+                btn_wgt_list.append(btn_wgt)
+
+            return btn_wgt_list
 
         def create_copy_btn_layout(self):
             layout = QHBoxLayout()
 
             width = 80
-            spacing = -2
+            spacing = -10
 
-            button_dict = {
+            btn_dict = {
                 "URL":
                     {"tooltip": "Copy game URL (U)",
                      "width": width,
@@ -317,21 +358,22 @@ def run_annotate():
                      "level": "2"}
             }
 
-            for button_name, config in button_dict.items():
-                button_wgt = QPushButton(button_name)
+            for button_name, config in btn_dict.items():
+                btn_wgt = QPushButton(button_name)
 
-                button_wgt.setFixedWidth(int(config["width"]))
-                button_wgt.setToolTip(config["tooltip"])
-                button_wgt.setShortcut(config["shortcut"])
-                button_wgt.clicked.connect(config["callback"])
-                button_wgt.setProperty("level", config["level"])
+                btn_wgt.setFixedWidth(int(config["width"]))
+                btn_wgt.setToolTip(config["tooltip"])
+                btn_wgt.setShortcut(config["shortcut"])
+                btn_wgt.clicked.connect(config["callback"])
+                btn_wgt.setProperty("level", config["level"])
 
-                layout.addWidget(button_wgt)
-                layout.addSpacing(spacing)
+                layout.addWidget(btn_wgt)
+                if not button_name == "FEN":
+                    layout.addSpacing(spacing)
 
             layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
             return layout
-        
+
         def create_game_btn_layout(self):
             width = 250
             spacing = -5
@@ -340,7 +382,7 @@ def run_annotate():
                 "Load": {"tooltip": "Load game (L)",
                          "width": width,
                          "shortcut": "L",
-                         "callback": self.close,
+                         "callback": self.load_game,
                          "level": "1"},
                 "Reset": {"tooltip": "Reset game tags (R)",
                           "width": width,
@@ -349,19 +391,19 @@ def run_annotate():
                           "level": "3"},
                 "Close": {"tooltip": "Close window (Esc)",
                           "width": width,
-                          "shortcut": "L",
+                          "shortcut": "Esc",
                           "callback": self.close,
                           "level": "3"}
             }
             for button_name, config in buttons.items():
-                button_wgt = QPushButton(button_name)
-                button_wgt.setToolTip(config["tooltip"])
-                button_wgt.setFixedWidth(config["width"])
-                button_wgt.setShortcut(config["shortcut"])
-                button_wgt.clicked.connect(config["callback"])
-                button_wgt.setProperty("level", config["level"])
+                btn_wgt = QPushButton(button_name)
+                btn_wgt.setToolTip(config["tooltip"])
+                btn_wgt.setFixedWidth(config["width"])
+                btn_wgt.setShortcut(config["shortcut"])
+                btn_wgt.clicked.connect(config["callback"])
+                btn_wgt.setProperty("level", config["level"])
 
-                layout.addWidget(button_wgt)
+                layout.addWidget(btn_wgt)
                 layout.addSpacing(spacing)
 
             layout.setAlignment(Qt.AlignmentFlag.AlignHCenter |
@@ -372,7 +414,7 @@ def run_annotate():
 
             layout = QHBoxLayout()
             layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                Qt.AlignmentFlag.AlignHCenter)
+                                Qt.AlignmentFlag.AlignRight)
             layout.setContentsMargins(30, 15, 0, 0)
 
             layout_left = QVBoxLayout()
@@ -384,13 +426,13 @@ def run_annotate():
 
                 header = key.split('_')[0]
                 tags = tag_source[key]
-                box_type = key.split('_')[1]                
+                box_type = key.split('_')[1]
 
                 tag_hdr_wgt = QLabel(header)
                 tag_hdr_wgt.setProperty("type", "tag-header")
-                
+
                 layout_block = QVBoxLayout()
-                layout_block.addSpacing(20)                
+                layout_block.addSpacing(20)
                 layout_block.addWidget(tag_hdr_wgt)
                 layout_block.addSpacing(7)
 
@@ -404,7 +446,6 @@ def run_annotate():
                     tag_wgt.setProperty("type", "tag")
                     self.tag_wgt_dict[tag] = tag_wgt
                     layout_block.addWidget(tag_wgt)
-
 
                 if header in ["GENERAL", "GAME PHASE", "GIAGNOSIS",
                               "MISSED RESPONSE"]:
