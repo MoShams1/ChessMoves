@@ -1,13 +1,18 @@
 
 GENERAL
 
-[] load game should come with save if there is an ongoing analysis
+[] load game should entail save function if there is an ongoing analysis
 [] check the efficiency of db connects/disconnects
 
 ------------------------------------
 ANNOT0ATE
 
-[] use tab key to switch focus across window, comments, questions
+[done] add comment and question boxes
+[done] add clear button
+[done] make cost color a property
+[done] allow "tab key" to switch focus across window, comments, questions
+
+[] show message
 [] reset button should scroll back to the beginning of the game
 
 ------------------------------------
@@ -19,3 +24,5 @@ TRAIN
 DEBUG
 
 [] button presses before a game has been loaded produce errors
+
+This is a terrible move as you have little understanding about the position, in which the pawn does not want to promote but the king forces him to move forward. The queen should always intervene in such situations. No more bishop stuff is needed. Just bring your queen and undress her. After the king sees her beautiful breasts, he will do what ever she demands.

@@ -1,8 +1,8 @@
 QWidget {
-    background: rgb(50, 50, 50);
+    background: hsl(0, 0, 50);
     font-family: Helvetica Neue;
     font-size: 14px;
-    color: rgb(200, 200, 200);
+    color: hsl(0, 0, 200);
 }
 
 QPushButton[level="1"],
@@ -16,23 +16,23 @@ QPushButton[level="3"] {
 QPushButton[level="1"]:pressed,
 QPushButton[level="2"]:pressed,
 QPushButton[level="3"]:pressed {
-    border-color: rgb(150, 150, 150);
+    border-color: hsl(0, 0, 150);
     border-style: solid;
     border-width: 2px;
 }
 
 QPushButton[level="1"] {
-    background-color: rgb(60, 100, 170);
+    background-color: hsl(220, 120, 130);
 
 }
 
 QPushButton[level="2"] {
-    background-color: rgb(80, 80, 80);
+    background-color: hsl(0, 0, 80);
 }
 
 QPushButton[level="3"] {
-    background-color: rgb(50, 50, 50);
-    border-color: rgb(80, 80, 80);
+    background-color: hsl(0, 0, 50);
+    border-color: hsl(0, 0, 80);
     border-style: solid;
     border-width: 3px;
 }

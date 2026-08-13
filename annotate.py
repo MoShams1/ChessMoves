@@ -30,7 +30,7 @@ def run_annotate():
             super().__init__()
 
             self.setWindowTitle("ChessMoves: Annotate")
-            self.resize(950, 950)
+            self.resize(1000, 1000)
 
             # --------------------------------------------------
             # attributes/variables/lists/dictionaries
@@ -43,8 +43,8 @@ def run_annotate():
             self.current_move_num = 0
             self.game_loaded_flag = False
 
-            self.comment_widget = QPlainTextEdit()
-            self.question_widget = QPlainTextEdit()
+            self.comment_wgt = QPlainTextEdit()
+            self.question_wgt = QPlainTextEdit()
 
             self.btn_wgt_dict = {}
             self.tag_wgt_dict = {}
@@ -72,7 +72,8 @@ def run_annotate():
             copy_btn_lay = self.create_copy_btn_layout()
             game_btn_lay = self.create_game_btn_layout()
             tag_lay = self.create_tag_lay()
-            textbox_layout = self.create_textbox_layout()
+            textbox_lay = self.create_textbox_layout()
+            clear_btn_wgt = self.create_clear_btn_widget()
 
             left_lay = QVBoxLayout()
             left_lay.addLayout(board_lay)
@@ -85,15 +86,21 @@ def run_annotate():
 
             right_lay = QVBoxLayout()
             right_lay.addLayout(tag_lay)
+            right_lay.addLayout(textbox_lay)
+            right_lay.addLayout(clear_btn_wgt)
 
             master_lay = QHBoxLayout()
             master_lay.addLayout(left_lay)
             master_lay.addLayout(right_lay)
 
-            master_lay.setContentsMargins(75, 75, 75, 75)
+            master_lay.setContentsMargins(90, 90, 90, 90)
 
             self.setLayout(master_lay)
+            self.setFocusPolicy(Qt.FocusPolicy.StrongFocus)
             self.setFocus()
+
+            self.setTabOrder(self, self.question_wgt)
+            self.setTabOrder(self.question_wgt, self.comment_wgt)
 
             # --------------------------------------------------------------------
 
@@ -101,30 +108,6 @@ def run_annotate():
                 board=chess.Board(),
                 orientation=self.flip_flag,
             )
-
-            # --------------------------------------------------------------------
-            # button connections
-
-            # self.btn_wgt_dict["Load"].clicked.connect(self.load_game)
-            # self.btn_wgt_dict["Save"].clicked.connect(
-            #     self.save_analysis_to_db)
-
-            # self.btn_wgt_dict["URL"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.url,
-            #         "Game URL copied to clipboard"))
-            # self.btn_wgt_dict["PGN"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.pgn,
-            #         "Game PGN copied to clipboard"))
-            # self.btn_wgt_dict["FEN"].clicked.connect(
-            #     lambda: self.copy_to_clipboard(
-            #         self.game.board.fen(),
-            #         "Position copied to clipboard"))
-            #
-            # self.btn_wgt_dict["Clear"].clicked.connect(self.clear_tags_in_ui)
-            # self.btn_wgt_dict["Reset"].clicked.connect(self.reset_game_tags)
-            # self.btn_wgt_dict["Close"].clicked.connect(self.close)
 
         # ///////////////////////////////////////////////////////////////////////
         # BOARD BEHAVIOR AND VISUALS
@@ -251,18 +234,24 @@ def run_annotate():
                 self.move_obj = self.game.move_obj_list[
                     self.current_move_num - 1]
 
-                if self.current_move_num == 0:
-                    self.notation_val_wgt.setText("-")
-                    self.cost_val_wgt.setText("-")
-                    self.eval_val_wgt.setText("-")
-                    self.move_obj = None
+                # if self.current_move_num == 0:
+                #     self.notation_val_wgt.setText("-")
+                #     self.cost_val_wgt.setText("-")
+                #     self.eval_val_wgt.setText("-")
+                #     self.move_obj = None
 
                 self.game.board.pop()
                 self.update_board()
 
         def create_info_layout(self):
 
-            spacing = 10
+            spacing_v = 2
+            spacing_h = 10
+
+            self.notation_val_wgt.setProperty('type', 'eval-normal')
+            self.cost_val_wgt.setProperty('type', 'eval-normal')
+            self.eval_val_wgt.setProperty('type', 'eval-normal')
+
             layout = QHBoxLayout()
 
             layout_hdr = QVBoxLayout()
@@ -280,25 +269,20 @@ def run_annotate():
                 hdr_wgt = QLabel(label)
                 hdr_wgt.setProperty("type", config["type"])
                 layout_hdr.addWidget(hdr_wgt)
+                layout_hdr.addSpacing(spacing_v)
                 layout_val.addWidget(config["val"])
+                layout_val.addSpacing(spacing_v)
 
             layout.addWidget(self.create_navi_button()[0],
                              Qt.AlignmentFlag.AlignLeft)
-            layout.addSpacing(spacing)
+            layout.addSpacing(spacing_h)
             layout.addLayout(layout_hdr, 2)
             layout.addLayout(layout_val, 5)
-            layout.addSpacing(spacing)
+            layout.addSpacing(spacing_h)
             layout.addWidget(self.create_navi_button()[1],
                              Qt.AlignmentFlag.AlignRight)
 
-            layout.setContentsMargins(50, 0, 50, 0)
-
-            # layout.setAlignment(Qt.AlignmentFlag.AlignLeft)
-
-            # put info layout to a container for a fixed width
-            # wgt = QWidget()
-            # wgt.setFixedSize(300, 200)
-            # wgt.setLayout(layout)
+            layout.setContentsMargins(25, 0, 25, 0)
 
             return layout
 
@@ -404,7 +388,8 @@ def run_annotate():
                 btn_wgt.setProperty("level", config["level"])
 
                 layout.addWidget(btn_wgt)
-                layout.addSpacing(spacing)
+                if not button_name == "Close":
+                    layout.addSpacing(spacing)
 
             layout.setAlignment(Qt.AlignmentFlag.AlignHCenter |
                                 Qt.AlignmentFlag.AlignTop)
@@ -412,10 +397,15 @@ def run_annotate():
 
         def create_tag_lay(self):
 
+            spacing_block_v_before = 20
+            spacing_block_v_after = 5
+            spacing_column_h = 20
+            spacing_tag_v = 3
+
             layout = QHBoxLayout()
             layout.setAlignment(Qt.AlignmentFlag.AlignTop |
-                                Qt.AlignmentFlag.AlignRight)
-            layout.setContentsMargins(30, 15, 0, 0)
+                                Qt.AlignmentFlag.AlignLeft)
+            layout.setContentsMargins(60, 15, 0, 0)
 
             layout_left = QVBoxLayout()
             layout_left.setAlignment(Qt.AlignmentFlag.AlignTop)
@@ -432,9 +422,9 @@ def run_annotate():
                 tag_hdr_wgt.setProperty("type", "tag-header")
 
                 layout_block = QVBoxLayout()
-                layout_block.addSpacing(20)
+                layout_block.addSpacing(spacing_block_v_before)
                 layout_block.addWidget(tag_hdr_wgt)
-                layout_block.addSpacing(7)
+                layout_block.addSpacing(spacing_block_v_after)
 
                 tag_wgt = None
                 for tag in tags:
@@ -446,39 +436,70 @@ def run_annotate():
                     tag_wgt.setProperty("type", "tag")
                     self.tag_wgt_dict[tag] = tag_wgt
                     layout_block.addWidget(tag_wgt)
+                    layout_block.addSpacing(spacing_tag_v)
 
                 if header in ["GENERAL", "GAME PHASE", "GIAGNOSIS",
                               "MISSED RESPONSE"]:
                     layout_left.addLayout(layout_block)
-                    layout_left.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
                 if header in ["TACTICAL THEME", "POSITIONAL THEME"]:
                     layout_right.addLayout(layout_block)
-                    layout_right.setAlignment(Qt.AlignmentFlag.AlignVCenter)
 
             layout.addLayout(layout_left)
-            layout.addSpacing(20)
+            layout.addSpacing(spacing_column_h)
             layout.addLayout(layout_right)
 
             return layout
 
         def create_textbox_layout(self):
-            layout = QHBoxLayout()
-            layout.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-            layout.setContentsMargins(20, 20, 20, 20)
+            height_hdr = 15
+            height_box = 100
+            spacing_box_v = 5
 
-            layout_left = QVBoxLayout()
-            layout_left.addWidget(QLabel("Comments:"))
-            layout_left.addWidget(self.comment_widget)
-            self.comment_widget.setFixedWidth(400)
+            self.comment_wgt.setFixedHeight(height_box)
+            self.comment_wgt.setTabChangesFocus(True)
+            self.question_wgt.setFixedHeight(height_box)
+            self.question_wgt.setTabChangesFocus(True)
 
-            layout_right = QVBoxLayout()
-            layout_right.addWidget(QLabel("Questions:"))
-            layout_right.addWidget(self.question_widget)
-            self.question_widget.setFixedWidth(400)
+            question_hdr_wgt = QLabel("QUESTIONS:")
+            question_hdr_wgt.setFixedHeight(height_hdr)
+            question_hdr_wgt.setProperty("type", "textbox-header")
 
-            layout.addLayout(layout_left)
-            layout.addLayout(layout_right)
+            comment_hdr_wgt = QLabel("COMMENTS:")
+            comment_hdr_wgt.setFixedHeight(height_hdr)
+            comment_hdr_wgt.setProperty("type", "textbox-header")
+
+            self.question_wgt.setProperty('type', 'textbox')
+            self.comment_wgt.setProperty('type', 'textbox')
+
+            layout = QVBoxLayout()
+
+            layout.addWidget(question_hdr_wgt)
+            layout.addWidget(self.question_wgt)
+            layout.addSpacing(spacing_box_v)
+            layout.addWidget(comment_hdr_wgt)
+            layout.addWidget(self.comment_wgt)
+
+            layout.setAlignment(Qt.AlignmentFlag.AlignTop)
+            layout.setContentsMargins(60, 20, 00, 0)
+
+            return layout
+
+        def create_clear_btn_widget(self):
+
+            width_btn = 80
+            btn_wgt = QPushButton("Clear")
+
+            btn_wgt.setToolTip("Clear move annotations (C)")
+            btn_wgt.setFixedWidth(width_btn)
+            btn_wgt.setShortcut("C")
+            btn_wgt.clicked.connect(self.clear_tags_in_ui)
+            btn_wgt.setProperty("level", "2")
+
+            layout = QVBoxLayout()
+            layout.addWidget(btn_wgt)
+            layout.setAlignment(Qt.AlignmentFlag.AlignRight |
+                                Qt.AlignmentFlag.AlignBottom)
             return layout
 
         def show_message(self, text):
@@ -560,9 +581,9 @@ def run_annotate():
         def save_tags_to_memory(self, tag_list, move_nr):
             self.game.tag_move_list[move_nr - 1] = tag_list
             self.game.comments_list[move_nr - 1] = (
-                self.comment_widget.toPlainText())
+                self.comment_wgt.toPlainText())
             self.game.questions_list[move_nr - 1] = (
-                self.question_widget.toPlainText())
+                self.question_wgt.toPlainText())
             self.game.notation_list[
                 move_nr - 1] = self.notation_val_wgt.text()
 
@@ -570,18 +591,18 @@ def run_annotate():
             tag_list = self.game.tag_move_list[move_nr - 1]
             for tag in tag_list:
                 self.tag_wgt_dict[tag].setChecked(True)
-            self.comment_widget.setPlainText(self.game.comments_list[
-                                                 move_nr - 1])
-            self.question_widget.setPlainText(self.game.questions_list[
-                                                  move_nr - 1])
+            self.comment_wgt.setPlainText(self.game.comments_list[
+                                              move_nr - 1])
+            self.question_wgt.setPlainText(self.game.questions_list[
+                                               move_nr - 1])
 
         def clear_tags_in_ui(self):
             self.rb_group.setExclusive(False)
             for value in self.tag_wgt_dict.values():
                 value.setChecked(False)
             self.rb_group.setExclusive(True)
-            self.comment_widget.clear()
-            self.question_widget.clear()
+            self.comment_wgt.clear()
+            self.question_wgt.clear()
 
         def load_game(self):
 
@@ -765,20 +786,23 @@ def run_annotate():
             cost = self.cost_val_wgt.text()
 
             if cost in ("Unavoidable Checkmate", "Missed Checkmate"):
-                color = "#EC7A5A"
+                style_type = "eval-blunder"
             else:
                 cost = float(cost)
-                if .5 <= cost < 1:
-                    color = "#4AA8CF"
-                elif 1 <= cost < 3:
-                    color = "#E0B953"
-                elif cost >= 3:
-                    color = "#EC7A5A"
-                else:
-                    color = "#D3D3D3"
 
-            self.cost_val_wgt.setStyleSheet(f"color: {color}")
-            self.notation_val_wgt.setStyleSheet(f"color: {color}")
+                if .5 <= cost < 1:
+                    style_type = "eval-inaccuracy"
+                elif 1 <= cost < 3:
+                    style_type = "eval-mistake"
+                elif cost >= 3:
+                    style_type = "eval-blunder"
+                else:
+                    style_type = "eval-normal"
+
+            for widget in (self.notation_val_wgt, self.cost_val_wgt):
+                widget.setProperty("type", style_type)
+                widget.style().unpolish(widget)
+                widget.style().polish(widget)
 
         def copy_to_clipboard(self, text, message):
             QApplication.clipboard().setText(text)

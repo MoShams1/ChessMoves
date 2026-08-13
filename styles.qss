@@ -1,33 +1,108 @@
 QWidget {
-    background: rgb(50, 50, 50);
+    background: hsl(0, 0, 50);
     font-family: Helvetica Neue;
     font-size: 12px;
-    color: rgb(200, 200, 200);
+    color: hsl(0, 0, 180);
 }
 
 QLabel[type="player"] {
     font-weight: bold;
-    color: rgb(150, 150, 150);
+    color: hsl(0, 0, 150);
 }
 
 QLabel[type="eval-header"] {
+    font-size: 13px;
+    font-family: Consolas;
     font-weight: bold;
-    color: rgb(150, 150, 150);
+    letter-spacing: 0.5px;
+    color: hsl(0, 0, 120);
+}
+
+QLabel[type="eval-normal"] {
+    font-size: 14px;
+    font-family: Consolas;
+    font-weight: normal;
+    color: hsl(0, 0, 150);
+}
+
+QLabel[type="eval-inaccuracy"] {
+    font-size: 14px;
+    font-family: Consolas;
+    font-weight: normal;
+    color: hsl(210, 148, 150);
+}
+
+QLabel[type="eval-mistake"] {
+    font-size: 14px;
+    font-family: Consolas;
+    font-weight: normal;
+    color: hsl(43, 179, 120);
+}
+
+QLabel[type="eval-blunder"] {
+    font-size: 14px;
+    font-family: Consolas;
+    font-weight: normal;
+    color: hsl(5, 170, 150);
 }
 
 QLabel[type="tag-header"] {
     font-size: 13px;
-    font-weight: bold;
+    font-weight: normal;
     letter-spacing: 2px;
-    color: rgb(120, 120, 120);
+    color: hsl(0, 0, 120);
 }
 
 QCheckBox[type="tag"] {
     letter-spacing: 0.5px;
+    color: hsl(0, 0, 180);
 }
 
 QRadioButton[type="tag"] {
     letter-spacing: 0.5px;
+    color: hsl(0, 0, 180);
+}
+
+QLabel[type="textbox-header"] {
+    font-size: 13px;
+    font-weight: normal;
+    letter-spacing: 2px;
+    color: hsl(0, 0, 120);
+}
+
+QPlainTextEdit {
+    background-color: hsl(0, 0, 40);
+    border-style: none;
+    font-family: Helvetica Neue;
+    font-size: 13px;
+    font-weight: normal;
+    font-style: italic;
+    color: hsl(0, 0, 180);
+}
+
+QPlainTextEdit QScrollBar:vertical {
+    width: 8px;
+    background: transparent;
+}
+
+QPlainTextEdit QScrollBar::handle:vertical {
+    background: hsl(0, 0, 100);
+    border-radius: 4px;
+    min-height: 30px;
+}
+
+QPlainTextEdit QScrollBar::handle:vertical:hover {
+    background: hsl(0, 0, 150);
+}
+
+QPlainTextEdit QScrollBar::add-line:vertical,
+QPlainTextEdit QScrollBar::sub-line:vertical {
+    height: 0px;
+}
+
+QPlainTextEdit QScrollBar::add-page:vertical,
+QPlainTextEdit QScrollBar::sub-page:vertical {
+    background: transparent;
 }
 
 QPushButton {
@@ -44,22 +119,22 @@ QPushButton[level="3"] {
 QPushButton[level="1"]:pressed,
 QPushButton[level="2"]:pressed,
 QPushButton[level="3"]:pressed {
-    border-color: rgb(150, 150, 150);
+    border-color: hsl(0, 0, 150);
     border-style: solid;
     border-width: 1px;
 }
 
 QPushButton[level="1"] {
-    background-color: rgb(60, 100, 170);
+    background-color: hsl(220, 120, 130);
 }
 
 QPushButton[level="2"] {
-    background-color: rgb(80, 80, 80);
+    background-color: hsl(0, 0, 80);
 }
 
 QPushButton[level="3"] {
-    background-color: rgb(50, 50, 50);
-    border-color: rgb(80, 80, 80);
+    background-color: hsl(0, 0, 50);
+    border-color: hsl(0, 0, 80);
     border-style: solid;
     border-width: 1px;
 }
