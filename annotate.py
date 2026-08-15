@@ -234,12 +234,6 @@ def run_annotate():
                 self.move_obj = self.game.move_obj_list[
                     self.current_move_num - 1]
 
-                # if self.current_move_num == 0:
-                #     self.notation_val_wgt.setText("-")
-                #     self.cost_val_wgt.setText("-")
-                #     self.eval_val_wgt.setText("-")
-                #     self.move_obj = None
-
                 self.game.board.pop()
                 self.update_board()
 
@@ -326,19 +320,19 @@ def run_annotate():
                     {"tooltip": "Copy game URL (U)",
                      "width": width,
                      "shortcut": "U",
-                     "callback": self.close,
+                     "callback": self.copy_url,
                      "level": "2"},
                 "PGN":
                     {"tooltip": "Copy game PGN (P)",
                      "width": width,
                      "shortcut": "P",
-                     "callback": self.close,
+                     "callback": self.copy_pgn,
                      "level": "2"},
                 "FEN":
                     {"tooltip": "Copy position FEN (E)",
                      "width": width,
                      "shortcut": "E",
-                     "callback": self.close,
+                     "callback": self.copy_fen,
                      "level": "2"}
             }
 
@@ -371,7 +365,7 @@ def run_annotate():
                 "Reset": {"tooltip": "Reset game tags (R)",
                           "width": width,
                           "shortcut": "R",
-                          "callback": self.close,
+                          "callback": self.reset_game_tags,
                           "level": "3"},
                 "Close": {"tooltip": "Close window (Esc)",
                           "width": width,
@@ -502,72 +496,47 @@ def run_annotate():
                                 Qt.AlignmentFlag.AlignBottom)
             return layout
 
-        def show_message(self, text):
-            return
-            # overlay = QWidget(self)
-            # overlay.setGeometry(self.rect())
-            #
-            # layout = QVBoxLayout(overlay)
-            # layout.setAlignment(Qt.AlignmentFlag.AlignRight |
-            #                     Qt.AlignmentFlag.AlignBottom)
-            #
-            # label = QLabel(text)
-            # label.setFont(self.message_font)
-            # layout.setContentsMargins(0, 0, 10, 10)
-            #
-            # if "WARNING" in text:
-            #     label.setStyleSheet("""
-            #         QLabel {
-            #             color: #E0B953;
-            #             background-color: rgb(40, 40, 40);
-            #             padding: 5px;
-            #             border-radius: 7px;
-            #         }
-            #     """)
-            #
-            # elif "ERROR" in text:
-            #     label.setStyleSheet("""
-            #         QLabel {
-            #             color: #EC7A5A;
-            #             background-color: rgb(40, 40, 40);
-            #             padding: 5px;
-            #             border-radius: 7px;
-            #         }
-            #     """)
-            #
-            # else:
-            #     label.setStyleSheet("""
-            #         QLabel {
-            #             background-color: rgb(40, 40, 40);
-            #             padding: 5px;
-            #             border-radius: 7px;
-            #         }
-            #     """)
-            #
-            # layout.addWidget(label)
-            # overlay.show()
-            #
-            # # Add opacity effect
-            # effect = QGraphicsOpacityEffect(label)
-            # effect.setOpacity(1)
-            # label.setGraphicsEffect(effect)
-            #
-            # # Wait, then fade out
-            # def fade_out():
-            #     animation = QPropertyAnimation(effect, b"opacity")
-            #     animation.setDuration(500)  # fade duration in ms
-            #     animation.setStartValue(effect.opacity())
-            #     animation.setEndValue(0)
-            #     animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
-            #     # noinspection PyUnresolvedReferences
-            #     animation.finished.connect(overlay.deleteLater)
-            #     animation.start()
-            #
-            #     overlay.animation = animation
-            #
-            # # QTimer.singleShot(3000, fade_out)
-            # QTimer.singleShot(30, fade_out)
-            #
+        def show_message(self, text, message_type):
+            overlay = QWidget(self)
+            overlay.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
+            overlay.setGeometry(self.rect())
+
+            # Ensure mouse clicks pass through the overlay to underlying
+            # controls
+            overlay.setAttribute(
+                Qt.WidgetAttribute.WA_TransparentForMouseEvents)
+
+            layout = QVBoxLayout(overlay)
+            layout.setAlignment(
+                Qt.AlignmentFlag.AlignRight |
+                Qt.AlignmentFlag.AlignBottom
+            )
+            layout.setContentsMargins(0, 0, 10, 10)
+
+            label = QLabel(text)
+            label.setProperty('type', message_type)
+
+            layout.addWidget(label)
+
+            effect = QGraphicsOpacityEffect(label)
+            effect.setOpacity(1.0)
+            label.setGraphicsEffect(effect)
+
+            overlay.show()
+
+            def fade_out():
+                animation = QPropertyAnimation(effect, b"opacity")
+                animation.setDuration(500)
+                animation.setStartValue(1.0)
+                animation.setEndValue(0.0)
+                animation.setEasingCurve(QEasingCurve.Type.InOutQuad)
+                animation.finished.connect(overlay.deleteLater)
+                overlay.animation = animation
+                animation.start()
+
+            QTimer.singleShot(3000, fade_out)
+
+
             # # ///////////////////////////////////////////////////////////////////////
             # # CREATE LAYOUTS
 
@@ -627,7 +596,8 @@ def run_annotate():
             if not self.game.eval_list:
                 self.show_message(
                     "ERROR: Game not loaded\n"
-                    "Make sure the game is already analyzed")
+                    "Make sure the game is already analyzed",
+                    'message-error')
                 return
 
             if self.game.black in player_names:
@@ -648,7 +618,8 @@ def run_annotate():
                 if self.existing_game_id:
                     self.show_message(
                         "Game loaded\n"
-                        "WARNING: Game already exists in database!")
+                        "WARNING: Game already exists in database!",
+                        'message-warning')
                     (self.game.tag_move_list,
                      self.game.comments_list,
                      self.game.questions_list,
@@ -660,7 +631,7 @@ def run_annotate():
                         self.game.questions_list)
                     )
                 else:
-                    self.show_message("Game loaded")
+                    self.show_message("Game loaded", 'message-normal')
                     print("Game Loaded!!")
 
                 self.game_loaded_flag = True
@@ -710,14 +681,14 @@ def run_annotate():
             self.close_db_connection(conn)
 
             if self.existing_game_id:
-                self.show_message("Analysis updated")
+                self.show_message("Analysis updated", 'message-normal')
             else:
-                self.show_message("Analysis saved")
+                self.show_message("Analysis saved", 'message-normal')
 
         def reset_game_tags(self):
             self.game.tag_move_list = [[] for _ in range(len(self.game.moves))]
             self.clear_tags_in_ui()
-            self.show_message("Game tags reset")
+            self.show_message("Game tags reset", 'message-normal')
 
         @staticmethod
         def close_db_connection(connection):
@@ -731,11 +702,11 @@ def run_annotate():
 
         def keyPressEvent(self, event):
 
-            if event.key() == Qt.Key.Key_Escape:
-                self.close()
+            # if event.key() == Qt.Key.Key_Escape:
+            #     self.close()
 
 
-            elif event.key() == Qt.Key.Key_Right:
+            if event.key() == Qt.Key.Key_Right:
                 self.next_move()
 
             elif event.key() == Qt.Key.Key_Left:
@@ -746,30 +717,15 @@ def run_annotate():
                 self.flip_flag = not self.flip_flag
                 self.update_board()
 
-            elif not self.game_loaded_flag and event.key() == Qt.Key.Key_L:
-                self.load_game()
+            # elif event.key() == Qt.Key.Key_S:
+            #     self.save_analysis_to_db()
 
-            elif self.game_loaded_flag and event.key() == Qt.Key.Key_U:
-                self.copy_to_clipboard(self.game.url,
-                                       "Game URL copied to clipboard")
+            # elif event.key() == Qt.Key.Key_R:
+            #     self.reset_game_tags()
 
-            elif self.game_loaded_flag and event.key() == Qt.Key.Key_P:
-                self.copy_to_clipboard(self.game.pgn,
-                                       "Game PGN copied to clipboard")
-
-            elif self.game_loaded_flag and event.key() == Qt.Key.Key_E:
-                self.copy_to_clipboard(self.game.board.fen(),
-                                       "Position copied to clipboard")
-
-            elif event.key() == Qt.Key.Key_S:
-                self.save_analysis_to_db()
-
-            elif event.key() == Qt.Key.Key_R:
-                self.reset_game_tags()
-
-            elif event.key() == Qt.Key.Key_C:
-                self.clear_tags_in_ui()
-                self.show_message("Move tags cleared")
+            # elif event.key() == Qt.Key.Key_C:
+            #     self.clear_tags_in_ui()
+            #     self.show_message("Move tags cleared", 'message-normal')
 
         def mousePressEvent(self, event):
             widget = QApplication.widgetAt(event.globalPosition().toPoint())
@@ -804,9 +760,20 @@ def run_annotate():
                 widget.style().unpolish(widget)
                 widget.style().polish(widget)
 
-        def copy_to_clipboard(self, text, message):
-            QApplication.clipboard().setText(text)
-            # self.show_message(message)
+        def copy_url(self):
+            QApplication.clipboard().setText(self.game.url)
+            self.show_message("Game URL copied to clipboard",
+                              'message-normal')
+
+        def copy_pgn(self):
+            QApplication.clipboard().setText(self.game.pgn)
+            self.show_message("Game PGN copied to clipboard",
+                              'message-normal')
+
+        def copy_fen(self):
+            QApplication.clipboard().setText(self.game.board.fen())
+            self.show_message("Position FEN copied to clipboard",
+                              'message-normal')
 
     class Game:
 

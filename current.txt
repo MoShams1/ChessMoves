@@ -7,12 +7,8 @@ GENERAL
 ------------------------------------
 ANNOT0ATE
 
-[done] add comment and question boxes
-[done] add clear button
-[done] make cost color a property
-[done] allow "tab key" to switch focus across window, comments, questions
-
-[] show message
+[done] show message
+[] add save button to UI below load
 [] reset button should scroll back to the beginning of the game
 
 ------------------------------------

@@ -53,6 +53,28 @@ QLabel[type="tag-header"] {
     color: hsl(0, 0, 120);
 }
 
+QLabel[type="message-normal"],
+QLabel[type="message-warning"],
+QLabel[type="message-error"] {
+    font-size: 11px;
+    padding: 5px;
+    border-radius: 7px;
+}
+
+QLabel[type="message-normal"] {
+    background-color: rgb(40, 40, 40);
+}
+
+QLabel[type="message-warning"] {
+    color: #E0B953;
+    background-color: rgb(40, 40, 40);
+}
+
+QLabel[type="message-error"] {
+    color: #EC7A5A;
+    background-color: rgb(40, 40, 40);
+}
+
 QCheckBox[type="tag"] {
     letter-spacing: 0.5px;
     color: hsl(0, 0, 180);
